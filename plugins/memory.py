@@ -49,7 +49,7 @@ class MemoryHook(Hook):
 
     """
     def __init__(self, parameters):
-        super(MemoryHook, self).__init__(parameters)
+        super().__init__(parameters)
         self.memdumps = []
         self.setup_handlers()
 
@@ -132,7 +132,7 @@ class VolatilityHook(Hook):
 
     """
     def __init__(self, parameters):
-        super(VolatilityHook, self).__init__(parameters)
+        super().__init__(parameters)
         self.snapshots = []
         self.setup_handlers()
         self.processing_done = Event()

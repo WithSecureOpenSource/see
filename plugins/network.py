@@ -13,7 +13,6 @@
 # permissions and limitations under the License.
 
 import os
-
 from see import Hook
 
 from utils import launch_process, collect_process_output, create_folder
@@ -43,7 +42,7 @@ class NetworkTracerHook(Hook):
 
     """
     def __init__(self, parameters):
-        super(NetworkTracerHook, self).__init__(parameters)
+        super().__init__(parameters)
         self.setup_handlers()
         self.pcap_path = None
         self.tracer_process = None
@@ -114,7 +113,7 @@ class NetworkAnalysisHook(Hook):
 
     """
     def __init__(self, parameters):
-        super(NetworkAnalysisHook, self).__init__(parameters)
+        super().__init__(parameters)
         self.setup_handlers()
         self.pcap_path = None
         self.analysis_process = None

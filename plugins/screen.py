@@ -40,7 +40,7 @@ class ScreenHook(Hook):
 
     """
     def __init__(self, parameters):
-        super(ScreenHook, self).__init__(parameters)
+        super().__init__(parameters)
         self.setup_handlers()
 
     def setup_handlers(self):
