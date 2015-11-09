@@ -12,6 +12,14 @@
 # implied.  See the License for the specific language governing
 # permissions and limitations under the License.
 
+"""Module for acquiring and analysing memory snapshots of a running VM.
+
+The VolatilityHook for analysing memory snapshots requires volatility.
+
+http://www.volatilityfoundation.org
+
+"""
+
 import os
 import libvirt
 from threading import Event

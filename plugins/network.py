@@ -12,6 +12,14 @@
 # implied.  See the License for the specific language governing
 # permissions and limitations under the License.
 
+"""Module for tracing and analysing network activity of a running VM.
+
+Tshark is required by both the acquisition and analysis Hooks.
+
+https://www.wireshark.org
+
+"""
+
 import os
 from see import Hook
 

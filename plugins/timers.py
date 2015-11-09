@@ -12,8 +12,11 @@
 # implied.  See the License for the specific language governing
 # permissions and limitations under the License.
 
-from see import Hook
+"""Module for triggering time based events."""
+
 from threading import Timer
+
+from see import Hook
 
 
 class TimersHook(Hook):
