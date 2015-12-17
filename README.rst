@@ -22,7 +22,7 @@ SEE allows to write sandboxed tests both for quick prototyping and for running o
 Installation
 ------------
 
-SEE is available as Python package but it's installation does not bring all the supported hypervisors.
+SEE is available as Python package on the Python Package Index (PyPI).
 
 It's user's responsibility to install and setup the hypervisors intended to be controlled with SEE.
 
@@ -32,8 +32,6 @@ Supported hypervisors
 ---------------------
 
 SEE is build on top of libvirt's APIs, therefore all hypervisors supported by libvirt can be controlled through SEE.
-
-http://libvirt.org
 
 SEE comes with a basic support for QEMU, VirtualBox and LXC, to add more hypervisor or customize the basic ones see the code contained in see/context.
 
@@ -64,3 +62,18 @@ SEE is an event-driven, plugin-based sandbox provider for synchronous and asynch
 A SEE Environment encapsulates all the required resources acting as a handler for the User. The Sandbox is controlled by the Hooks which act as plugins, Hooks communicate and co-ordinate themselves through Events.
 
 Each Hook has direct access to the Sandbox which exposes a simple API for it's control and libvirt's APIs for more fine grained control.
+
+Links
+-----
+
+Project page.
+
+https://pypi.python.org/pypi/python-see
+
+Project documentation.
+
+http://pythonhosted.org/python-see
+
+Libirt project page.
+
+http://libvirt.org
