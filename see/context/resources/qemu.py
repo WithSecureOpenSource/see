@@ -14,7 +14,7 @@
 
 """SEE QEMU Resources.
 
-This module provides an API for creating a virDomain controlling a VirtualBox Virtual Machine.
+This module provides an API for creating a virDomain controlling a QEMU Virtual Machine.
 
 Configuration::
 {
@@ -58,7 +58,7 @@ The disk image file must be placed in a valid libvirt storage pool.
 If the optional parameter clone is provided, the Disk will be cloned in a dedicated storage pool created in
 the storage_pool_path directory.
 
-If copy_on_right is set to true the disk will be cloned with QCOW COW strategy, allowing to save disk space.
+If copy_on_write is set to true the disk will be cloned with QCOW COW strategy, allowing to save disk space.
 
 Network::
 
