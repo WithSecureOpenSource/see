@@ -50,12 +50,12 @@ In case of problems, please refer to `libvirt`'s reference documentation.
   To verify that KVM is available it is enough to run:
   \begin{verbatim}
       # modprobe kvm
-      # modporbe kvm_intel
+      # modprobe kvm_intel
   \end{verbatim}
   for Intel processors or:
   \begin{verbatim}
       # modprobe kvm
-      # modporbe kvm_amd
+      # modprobe kvm_amd
   \end{verbatim}
   for AMD ones.
 
