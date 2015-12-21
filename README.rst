@@ -74,6 +74,6 @@ Project documentation.
 
 http://pythonhosted.org/python-see
 
-Libirt project page.
+Libvirt project page.
 
 http://libvirt.org
