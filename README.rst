@@ -72,8 +72,12 @@ https://pypi.python.org/pypi/python-see
 
 Project documentation.
 
-http://pythonhosted.org/python-see
+https://pythonhosted.org/python-see
 
 Libvirt project page.
 
-http://libvirt.org
+https://libvirt.org
+
+Presentation on PyCon Finland 2015.
+
+https://www.youtube.com/watch?v=k185OMivqbQ
