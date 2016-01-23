@@ -92,6 +92,9 @@ VOLUME_DEFAULT_CONFIG = """
   <uuid>{0}</uuid>
   <target>
     <path>{1}</path>
+    <permissions>
+      <mode>0644</mode>
+    </permissions>
     <format type='qcow2'/>
   </target>
 </volume>
