@@ -60,6 +60,9 @@ class DiskXMLTest(unittest.TestCase):
   <uuid>foo</uuid>
   <target>
     <path>/poolpath/foo.qcow2</path>
+    <permissions>
+      <mode>0644</mode>
+    </permissions>
     <format type="qcow2" />
   </target>
 <capacity>10</capacity></volume>"""
@@ -76,6 +79,9 @@ class DiskXMLTest(unittest.TestCase):
   <uuid>foo</uuid>
   <target>
     <path>/poolpath/foo.qcow2</path>
+    <permissions>
+      <mode>0644</mode>
+    </permissions>
     <format type="qcow2" />
   </target>
 <capacity>10</capacity></volume>"""
@@ -87,7 +93,8 @@ class DiskXMLTest(unittest.TestCase):
         pool_config = """<pool><target><path>/poolpath</path></target></pool>"""
         disk_config = """<volume><target><path>/path/volume.qcow2</path></target><capacity>10</capacity></volume>"""
         expected = """<volume type="file"><name>foo</name><uuid>foo</uuid><target>""" +\
-                   """<path>/poolpath/foo.qcow2</path><format type="qcow2" />""" +\
+                   """<path>/poolpath/foo.qcow2</path><permissions><mode>0644</mode>""" +\
+                   """</permissions><format type="qcow2" />""" +\
                    """</target><capacity>10</capacity><backingStore><path>/path/volume.qcow2</path>""" +\
                    """<format type="qcow2" /></backingStore></volume>"""
         results = qemu.disk_xml('foo', pool_config, disk_config, True)
@@ -242,10 +249,12 @@ class DiskCloneTest(unittest.TestCase):
         hypervisor = mock.Mock()
         hypervisor.storageVolLookupByPath.return_value = volume
         pool.XMLDesc.return_value = """<pool><target><path>/pool/path</path></target></pool>"""
-        volume.XMLDesc.return_value = """<volume><target><path>/path/volume.qcow2</path></target>""" +\
-                                      """<capacity>10</capacity></volume>"""
+        volume.XMLDesc.return_value = """<volume><target><path>/path/volume.qcow2</path>""" +\
+                                      """</target><capacity>10</capacity></volume>"""
         expected = """<volume type="file"><name>foo</name><uuid>foo</uuid><target>""" +\
-                   """<path>/pool/path/foo.qcow2</path><format type="qcow2" /></target>""" +\
+                   """<path>/pool/path/foo.qcow2</path><permissions>""" +\
+                   """<mode>0644</mode></permissions>""" +\
+                   """<format type="qcow2" /></target>""" +\
                    """<capacity>10</capacity></volume>"""
         qemu.disk_clone(hypervisor, 'foo', pool, {'image': '/foo/bar/baz.qcow2', 'clone': {}})
         results = pool.createXMLFrom.call_args_list[0][0][0]
@@ -262,8 +271,8 @@ class DiskCloneTest(unittest.TestCase):
         volume.XMLDesc.return_value = """<volume><target><path>/path/volume.qcow2</path></target>""" +\
                                       """<capacity>10</capacity></volume>"""
         expected = """<volume type="file"><name>foo</name><uuid>foo</uuid><target>""" +\
-                   """<path>/pool/path/foo.qcow2</path><format type="qcow2" /></target>""" +\
-                   """<capacity>10</capacity>""" +\
+                   """<path>/pool/path/foo.qcow2</path><permissions><mode>0644</mode></permissions>""" +\
+                   """<format type="qcow2" /></target><capacity>10</capacity>""" +\
                    """<backingStore><path>/path/volume.qcow2</path><format type="qcow2" />""" +\
                    """</backingStore></volume>"""
         qemu.disk_clone(hypervisor, 'foo', pool, {'image': '/foo/bar/baz.qcow2', 'clone': {'copy_on_write': True}})
