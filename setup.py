@@ -16,7 +16,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="python-see",
-    version="1.0.0",
+    version="1.0.1",
     author="F-Secure Corporation",
     author_email="matteo.cafasso@f-secure.com",
     description=("Sandboxed Execution Environment"),
