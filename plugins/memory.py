@@ -28,7 +28,7 @@ from datetime import datetime
 from see import Hook
 from see.context import PAUSED
 
-from utils import launch_process, collect_process_output, create_folder
+from .utils import launch_process, collect_process_output, create_folder
 
 
 class MemoryHook(Hook):
