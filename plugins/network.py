@@ -42,8 +42,12 @@ class NetworkTracerHook(Hook):
           "results_folder": "/folder/where/to/store/pcap/file",
           "start_trace_on_event": "event_triggering_network_tracing",
           "stop_trace_on_event": "event_triggering_network_tracing_end",
+          "trace_limit": 1024,
           "delete_trace_file": False
         }
+
+    If trace_limit is given, the network capturing will stop
+    once the given limit in KB is reached.
 
     If delete_trace_file is set to True, it will delete the trace file
     at the end of the execution. Default behaviour is to keep it.
@@ -75,9 +79,14 @@ class NetworkTracerHook(Hook):
 
         create_folder(folder_path)
         self.pcap_path = os.path.join(folder_path, "%s.pcap" % self.identifier)
-        self.tracer_process = launch_process(
-            TSHARK, '-w', self.pcap_path,
-            '-i', self.context.network.bridgeName())
+
+        command = [TSHARK, '-w', self.pcap_path,
+                   '-i', self.context.network.bridgeName()]
+        if 'trace_limit' in self.configuration:
+            command.extend(
+                ('-a', 'filesize:%d' % self.configuration['trace_limit']))
+
+        self.tracer_process = launch_process(*command)
         self.context.trigger("network_tracing_started", path=self.pcap_path)
 
         self.logger.info("Network tracing started.")
