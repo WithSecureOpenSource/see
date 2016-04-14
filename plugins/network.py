@@ -23,7 +23,7 @@ https://www.wireshark.org
 import os
 from see import Hook
 
-from utils import launch_process, collect_process_output, create_folder
+from .utils import launch_process, collect_process_output, create_folder
 
 
 TSHARK = 'tshark'

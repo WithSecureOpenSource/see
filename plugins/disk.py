@@ -29,7 +29,7 @@ import xml.etree.ElementTree as etree
 from see import Hook
 from vminspect import DiskComparator
 
-from utils import launch_process, collect_process_output, create_folder
+from .utils import launch_process, collect_process_output, create_folder
 
 
 QEMU_IMG = 'qemu-img'
