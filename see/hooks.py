@@ -48,11 +48,17 @@ class HookManager(object):
             '%s.%s' % (self.__module__, self.__class__.__name__))
 
     def load_hooks(self, context):
+        """
+        Initializes the Hooks and loads them within the Environment.
+        """
         for hook in self.configuration.get('hooks', ()):
             config = hook.get('configuration', {})
             config.update(self.configuration.get('configuration', {}))
 
-            self._load_hook(hook['name'], config, context)
+            try:
+                self._load_hook(hook['name'], config, context)
+            except KeyError:
+                self.logger.exception('Provided hook has no name: %s.', hook)
 
     def _load_hook(self, name, configuration, context):
         self.logger.debug('Loading %s hook.', name)

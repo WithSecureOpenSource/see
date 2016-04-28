@@ -36,7 +36,8 @@ class HookManagerLoadTest(unittest.TestCase):
         """TestHook is loaded into HookManager."""
         context = mock.MagicMock()
         self.hook_manager.load_hooks(context)
-        self.assertEqual(self.hook_manager.hooks[0].__class__.__name__, 'TestHook')
+        self.assertEqual(self.hook_manager.hooks[0].__class__.__name__,
+                         'TestHook')
 
     def test_load_hooks_configuration(self):
         """Generic configuration are available in TestHook."""
@@ -59,6 +60,15 @@ class HookManagerLoadTest(unittest.TestCase):
         hm = hooks.HookManager('foo', config)
         hm.load_hooks(context)
         self.assertEqual(len(hm.hooks), 0)
+
+    def test_load_missing_name(self):
+        """Wrong Hooks are not loaded."""
+        context = mock.MagicMock()
+        config = copy.deepcopy(CONFIG)
+        del config['hooks'][0]['name']
+        hm = hooks.HookManager('foo', config)
+        hm.load_hooks(context)
+        self.assertEqual(len(hm.hooks), 1)
 
 
 class HooksManagerCleanupTest(unittest.TestCase):
