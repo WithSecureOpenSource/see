@@ -169,3 +169,27 @@ class CreateTest(unittest.TestCase):
         net = mock.Mock()
         network.delete(net)
         self.assertTrue(net.destroy.called)
+
+
+class LookupTest(unittest.TestCase):
+    def test_lookup(self):
+        """Network lookup passes correct parameters to hypervisor."""
+        xml = """<domain><interface type="network">""" +\
+              """<source network="foo" /></interface></domain>"""
+        domain = mock.Mock()
+        hypervisor = mock.Mock()
+        domain.XMLDesc.return_value = xml
+        domain.connect.return_value = hypervisor
+
+        network.lookup(domain)
+        hypervisor.networkLookupByName.assert_called_with('foo')
+
+    def test_lookup_no_network(self):
+        """None is return if domain is not associated with any Network."""
+        xml = """<domain></domain>"""
+        domain = mock.Mock()
+        hypervisor = mock.Mock()
+        domain.XMLDesc.return_value = xml
+        domain.connect.return_value = hypervisor
+
+        self.assertEqual(network.lookup(domain), None)
