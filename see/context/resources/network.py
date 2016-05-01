@@ -149,6 +149,27 @@ def create(hypervisor, identifier, configuration, max_attempts=10):
             raise RuntimeError("Unable to create new network: {}".format(error))
 
 
+def lookup(domain):
+    """Find the virNetwork object associated to the domain.
+
+    If the domain has more than one network interface,
+    the first one is returned.
+    None is returned if the domain is not attached to any network.
+
+    """
+    xml = domain.XMLDesc(0)
+    element = etree.fromstring(xml)
+    subelm = element.find('.//interface[@type="network"]')
+
+    if subelm is not None:
+        network = subelm.find('.//source').get('network')
+        hypervisor = domain.connect()
+
+        return hypervisor.networkLookupByName(network)
+
+    return None
+
+
 def delete(network):
     """libvirt network cleanup.
 
