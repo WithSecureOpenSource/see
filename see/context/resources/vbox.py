@@ -128,11 +128,12 @@ class VBoxResources(resources.Resources):
     def _initialize(self):
         """Initializes libvirt resources."""
         disk_path = self.configuration['disk']['image']
-        url = 'hypervisor' in self.configuration and self.configuration['hypervisor'] or 'vbox:///session'
 
-        self._hypervisor = libvirt.open(url)
-        self._domain = domain_create(self._hypervisor, self.identifier, self.configuration['domain'],
-                                     disk_path)
+        self._hypervisor = libvirt.open(
+            self.configuration.get('hypervisor', 'vbox:///session'))
+
+        self._domain = domain_create(self._hypervisor, self.identifier,
+                                     self.configuration['domain'], disk_path)
 
     def cleanup(self):
         """Releases all resources."""

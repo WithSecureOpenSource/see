@@ -184,31 +184,55 @@ class LXCResources(resources.Resources):
 
     def _initialize(self):
         """Initializes libvirt resources."""
-        network_name = None
-        url = 'hypervisor' in self.configuration and self.configuration['hypervisor'] or 'lxc:///'
+        self._hypervisor = libvirt.open(
+            self.configuration.get('hypervisor', 'lxc:///'))
 
-        self._hypervisor = libvirt.open(url)
-        if 'network' in self.configuration:
-            self._network = network.create(self._hypervisor, self.identifier, self.configuration['network'])
-            network_name = self._network.name()
-        self._domain = domain_create(self._hypervisor, self.identifier, self.configuration['domain'],
+        network_name = self._retrieve_network_name(
+            self.configuration.get('network'))
+
+        self._domain = domain_create(self._hypervisor, self.identifier,
+                                     self.configuration['domain'],
                                      network_name=network_name)
+
+        self._network = network.lookup(self._domain)
+
+    def _retrieve_network_name(self, configuration):
+        network_name = None
+
+        if configuration is not None:
+            new_network = network.create(self._hypervisor, self.identifier,
+                                         configuration)
+            network_name = new_network.name()
+
+        return network_name
 
     def cleanup(self):
         """Releases all resources."""
+        if self._domain is not None:
+            self._domain_delete()
+        if self._network is not None and 'network' in self.configuration:
+            self._network_delete()
+        if self._hypervisor is not None:
+            self._hypervisor_delete()
+
+    def _domain_delete(self):
         filesystem = None
 
-        if self._domain is not None:
-            if 'filesystem' in self.configuration:
-                filesystem = os.path.join(self.configuration['filesystem']['source_path'], self.identifier)
-            domain_delete(self._domain, self.logger, filesystem)
-        if self._network is not None:
-            try:
-                network.delete(self._network)
-            except Exception:
-                self.logger.exception("Unable to delete network.")
-        if self._hypervisor is not None:
-            try:
-                self._hypervisor.close()
-            except Exception:
-                self.logger.exception("Unable to close hypervisor connection.")
+        if 'filesystem' in self.configuration:
+            filesystem = os.path.join(
+                self.configuration['filesystem']['source_path'],
+                self.identifier)
+
+        domain_delete(self._domain, self.logger, filesystem)
+
+    def _network_delete(self):
+        try:
+            network.delete(self._network)
+        except Exception:
+            self.logger.exception("Unable to delete network.")
+
+    def _hypervisor_delete(self):
+        try:
+            self._hypervisor.close()
+        except Exception:
+            self.logger.exception("Unable to close hypervisor connection.")

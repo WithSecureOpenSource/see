@@ -210,6 +210,20 @@ def pool_create(hypervisor, identifier, pool_path):
     return hypervisor.storagePoolCreateXML(xml, 0)
 
 
+def pool_lookup(hypervisor, disk_path):
+    """Storage pool lookup.
+
+    Retrieves the the virStoragepool which contains the disk at the given path.
+
+    """
+    try:
+        volume = hypervisor.storageVolLookupByPath(disk_path)
+
+        return volume.storagePoolLookupByVolume()
+    except libvirt.libvirtError:
+        return None
+
+
 def pool_delete(storage_pool, logger):
     """Storage Pool deletion, removes all the created disk images within the pool and the pool itself."""
     path = etree.fromstring(storage_pool.XMLDesc(0)).find('.//path').text
@@ -254,7 +268,7 @@ def disk_clone(hypervisor, identifier, storage_pool, configuration):
 
     """
     path = configuration['image']
-    cow = 'copy_on_write' in configuration['clone'] and configuration['clone']['copy_on_write'] or False
+    cow = configuration['clone'].get('copy_on_write', False)
 
     try:
         volume = hypervisor.storageVolLookupByPath(path)
@@ -278,9 +292,11 @@ class QEMUResources(resources.Resources):
     """
     def __init__(self, identifier, configuration):
         super(QEMUResources, self).__init__(identifier, configuration)
+        self._hypervisor = None
         self._domain = None
         self._network = None
         self._storage_pool = None
+
         self._initialize()
 
     @property
@@ -301,28 +317,53 @@ class QEMUResources(resources.Resources):
 
     def _initialize(self):
         """Initializes libvirt resources."""
-        network_name = None
-        url = 'hypervisor' in self.configuration and self.configuration['hypervisor'] or 'qemu:///system'
+        self._hypervisor = libvirt.open(
+            self.configuration.get('hypervisor', 'qemu:///system'))
 
-        self._hypervisor = libvirt.open(url)
-        if 'clone' in self.configuration['disk']:
-            disk_path = self._clone_disk()
-        else:
-            disk_path = self.configuration['disk']['image']
-        if 'network' in self.configuration:
-            self._network = network.create(self._hypervisor, self.identifier, self.configuration['network'])
-            network_name = self._network.name()
+        self._storage_pool = self._retrieve_pool(self.configuration['disk'])
 
-        self._domain = domain_create(self._hypervisor, self.identifier, self.configuration['domain'],
+        disk_path = self._retrieve_disk_path(self.configuration['disk'])
+        network_name = self._retrieve_network_name(
+            self.configuration.get('network'))
+
+        self._domain = domain_create(self._hypervisor, self.identifier,
+                                     self.configuration['domain'],
                                      disk_path, network_name=network_name)
 
-    def _clone_disk(self):
+        self._network = network.lookup(self._domain)
+
+    def _retrieve_pool(self, configuration):
+        if 'clone' in configuration:
+            return pool_create(
+                self._hypervisor, self.identifier,
+                self.configuration['disk']['clone']['storage_pool_path'])
+        else:
+            return pool_lookup(self._hypervisor,
+                               self.configuration['disk']['image'])
+
+    def _retrieve_disk_path(self, configuration):
+        if 'clone' in configuration:
+            return self._clone_disk(configuration)
+        else:
+            return configuration['image']
+
+    def _clone_disk(self, configuration):
         """Clones the disk and returns the path to the new disk."""
-        self._storage_pool = pool_create(self._hypervisor, self.identifier,
-                                         self.configuration['disk']['clone']['storage_pool_path'])
-        disk_clone(self._hypervisor, self.identifier, self._storage_pool, self.configuration['disk'])
+        disk_clone(self._hypervisor, self.identifier,
+                   self._storage_pool, configuration)
         disk_name = self._storage_pool.listVolumes()[0]
+
         return self._storage_pool.storageVolLookupByName(disk_name).path()
+
+    def _retrieve_network_name(self, configuration):
+        network_name = None
+
+        if configuration is not None:
+            new_network = network.create(self._hypervisor, self.identifier,
+                                         configuration)
+            network_name = new_network.name()
+
+        return network_name
 
     def cleanup(self):
         """Releases all resources."""
@@ -336,16 +377,18 @@ class QEMUResources(resources.Resources):
             self._hypervisor_delete()
 
     def _network_delete(self):
-        try:
-            network.delete(self._network)
-        except Exception:
-            self.logger.exception("Unable to delete network.")
+        if 'network' in self.configuration:
+            try:
+                network.delete(self._network)
+            except Exception:
+                self.logger.exception("Unable to delete network.")
 
     def _storage_pool_delete(self):
-        try:
-            pool_delete(self._storage_pool, self.logger)
-        except Exception:
-            self.logger.exception("Unable to delete storage pool.")
+        if 'clone' in self.configuration.get('disk', {}):
+            try:
+                pool_delete(self._storage_pool, self.logger)
+            except Exception:
+                self.logger.exception("Unable to delete storage pool.")
 
     def _hypervisor_delete(self):
         try:

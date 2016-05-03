@@ -167,41 +167,71 @@ class DomainDelete(unittest.TestCase):
 
 
 class ResourcesTest(unittest.TestCase):
+    @mock.patch('see.context.resources.network.lookup')
     @mock.patch('see.context.resources.lxc.libvirt')
     @mock.patch('see.context.resources.lxc.domain_create')
-    def test_initialize_default(self, create_mock, libvirt_mock):
+    def test_initialize_default(self, create_mock, libvirt_mock,
+                                network_lookup_mock):
         """Resources initializer with no extra value."""
         resources = lxc.LXCResources('foo', {'domain': 'bar'})
         libvirt_mock.open.assert_called_with('lxc:///')
         create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar', network_name=None)
 
+    @mock.patch('see.context.resources.network.lookup')
     @mock.patch('see.context.resources.lxc.libvirt')
     @mock.patch('see.context.resources.lxc.domain_create')
-    def test_initialize_hypervisor(self, create_mock, libvirt_mock):
+    def test_initialize_hypervisor(self, create_mock, libvirt_mock,
+                                   network_lookup_mock):
         """Resources initializer with hypervisor."""
         resources = lxc.LXCResources('foo', {'domain': 'bar', 'hypervisor': 'baz'})
         libvirt_mock.open.assert_called_with('baz')
         create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar', network_name=None)
 
     @mock.patch('see.context.resources.lxc.libvirt')
+    @mock.patch('see.context.resources.lxc.network')
     @mock.patch('see.context.resources.lxc.domain_create')
-    @mock.patch('see.context.resources.network.create')
-    def test_initialize_network(self, network_mock, create_mock, libvirt_mock):
+    def test_initialize_network(self, create_mock, network_mock, libvirt_mock):
         """Resources initializer with network."""
         network = mock.Mock()
         network.name.return_value = 'baz'
-        network_mock.return_value = network
-        resources = lxc.LXCResources('foo', {'domain': 'bar', 'network': 'baz'})
-        network_mock.assert_called_with(resources.hypervisor, 'foo', 'baz')
-        create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar', network_name='baz')
+        network_mock.lookup = mock.Mock()
+        network_mock.create.return_value = network
+
+        resources = lxc.LXCResources('foo', {'domain': 'bar',
+                                             'network': 'baz',
+                                             'disk': {'image': '/foo/bar'}})
+        network_mock.create.assert_called_with(resources.hypervisor, 'foo', 'baz')
+        create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar',
+                                       network_name='baz')
 
     @mock.patch('see.context.resources.lxc.libvirt')
     @mock.patch('see.context.resources.lxc.domain_create')
+    @mock.patch('see.context.resources.network.lookup')
     @mock.patch('see.context.resources.network.delete')
     @mock.patch('see.context.resources.lxc.domain_delete')
-    def test_cleanup(self, delete_mock, network_delete_mock, create_mock, libvirt_mock):
-        """Resources are released on cleanup."""
+    def test_cleanup_no_creation(self, delete_mock, network_delete_mock,
+                                 network_lookup_mock, create_mock,
+                                 libvirt_mock):
+        """Resources are released on cleanup. Network not created"""
         resources = lxc.LXCResources('foo', {'domain': 'bar'})
+        resources._domain = mock.Mock()
+        resources._network = mock.Mock()
+        resources._hypervisor = mock.Mock()
+        resources.cleanup()
+        delete_mock.assert_called_with(resources.domain, mock.ANY, None)
+        self.assertFalse(network_delete_mock.called)
+        self.assertTrue(resources._hypervisor.close.called)
+
+    @mock.patch('see.context.resources.lxc.libvirt')
+    @mock.patch('see.context.resources.lxc.domain_create')
+    @mock.patch('see.context.resources.network.lookup')
+    @mock.patch('see.context.resources.network.delete')
+    @mock.patch('see.context.resources.lxc.domain_delete')
+    def test_cleanup_creation(self, delete_mock, network_delete_mock,
+                              network_lookup_mock, create_mock, libvirt_mock):
+        """Resources are released on cleanup. Network created"""
+        resources = lxc.LXCResources('foo', {'domain': 'bar',
+                                             'network': {}})
         resources._domain = mock.Mock()
         resources._network = mock.Mock()
         resources._hypervisor = mock.Mock()
@@ -212,9 +242,11 @@ class ResourcesTest(unittest.TestCase):
 
     @mock.patch('see.context.resources.lxc.libvirt')
     @mock.patch('see.context.resources.lxc.domain_create')
+    @mock.patch('see.context.resources.network.lookup')
     @mock.patch('see.context.resources.network.delete')
     @mock.patch('see.context.resources.lxc.domain_delete')
-    def test_cleanup_filesystem(self, delete_mock, network_delete_mock, create_mock, libvirt_mock):
+    def test_cleanup_filesystem(self, delete_mock, network_delete_mock,
+                                network_lookup_mock, create_mock, libvirt_mock):
         """Shared folder is cleaned up."""
         resources = lxc.LXCResources('foo', {'domain': 'bar', 'filesystem':
                                              {'source_path': '/bar',
