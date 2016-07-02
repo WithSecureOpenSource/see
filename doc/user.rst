@@ -49,7 +49,7 @@ The example shows a configuration section including two Hooks - Hook1 and Hook2 
 Resources
 +++++++++
 
-SEE `resources` describes the sandbox's layout and its capabilities. Their configuration may vary according to the sandboxing technology which has been chosen. SEE includes a minimal support for QEMU/KVM, Virtualbox and Linux Containers but allows Developers to expand it though a simple interface.
+SEE `resources` describes the layout of the sandboxes and their capabilities. Their configuration may vary according to the sandboxing technology which has been chosen. SEE includes a minimal support for QEMU/KVM, Virtualbox and Linux Containers but allows Developers to expand it though a simple interface.
 
 The `resources` configuration syntax is virtualization provider specific and its details can be found within the modules implementation under:
 
@@ -79,9 +79,7 @@ The following tags are dynamically set, if missing, in the `domain` XML configur
 
 Additionally, the User can specify one or more file system mounts to be exposed within the Linux Container. For each entry in the `filesystem` field, a `source_path` must be specified representing the mount location on the host side. In such location, a temporary subfolder, named as the Environment's UUID, will be created avoiding collisions with other containers pointing at the same place. The `target_path` instead, contains the path which will be visible within the container. The mount points will be readable and writable from both the host and the guest sides.
 
-The `network` field specifies the virtual subnetwork in which the container will be placed. As for the `domain`, a `configuration` file must be provided. Please refer to the `libvirt Networking <http://libvirt.org/formatnetwork.html>`_ page for configuring a virtual network.
-
-If provided, the `ip_autodiscovery` boolean value will instruct the resources to provide a valid IP address in the range 192.168.1.1 - 192.168.255.1 with a DHCP server serving addresses from 192.168.X.2 to 192.168.X.128. The sandbox will be automatically connected to the resulting network. If no `network` field is given, the container will rely on the information contained within the XML configuration file.
+The User can attach a Linux Container to a dynamically provisioned network relieving the User from their creation and management. See the Network section for more information.
 
 The following JSON snippet shows an example of a LXC configuration.
 
@@ -105,10 +103,7 @@ The following JSON snippet shows an example of a LXC configuration.
           ]
       },
       "network":
-      {
-          "configuration": "/etc/myconfig/see/network.xml",
-          "ip_autodiscovery": true
-      }
+      { "See Network section" }
   }
 
 
@@ -138,9 +133,7 @@ If the `clone` section it's provided, a `storage_pool_path` must be present. A s
 
 The optional `copy_on_write` boolean flag dictates whether the whole disk image will be cloned or only the new files created during the test execution. This allows to save a considerable amount of disk space but the original disk image must be available during all the Environment's lifecycle.
 
-The `network` field specifies the virtual subnetwork in which the container will be placed. As for the `domain`, a `configuration` file must be provided. Please refer to the `libvirt Networking <http://libvirt.org/formatnetwork.html>`_ page for configuring a virtual network.
-
-If provided, the `ip_autodiscovery` boolean value will instruct the resources to provide a valid IP address in the range 192.168.1.1 - 192.168.255.1 with a DHCP server serving addresses from 192.168.X.2 to 192.168.X.128. The sandbox will be automatically connected to the resulting network. If no `network` field is given, the container will rely on the information contained within the XML configuration file.
+The User can attach a QEMU Virtual Machine to a dynamically provisioned network relieving the User from their creation and management. See the Network section for more information.
 
 The following JSON snippet shows an example of a QEMU configuration.
 
@@ -162,10 +155,7 @@ The following JSON snippet shows an example of a QEMU configuration.
           }
       },
       "network":
-      {
-          "configuration": "/etc/myconfig/see/network.xml",
-          "ip_autodiscovery": true
-      }
+      { "See Network section" }
   }
 
 
@@ -207,3 +197,36 @@ The following JSON snippet shows an example of a Virtualbox configuration.
           "image": "/var/mystoragepool/image.vdi",
       }
   }
+
+Network
+^^^^^^^
+
+Network resources are provided by the module contained in:
+
+::
+
+  see/resources/network.py
+
+A typical scenario is the execution of a Sandbox connected to a subnetwork. For the simplest use cases, libvirt's default network is enough. Yet there are different situations in which, for example, the User wants to execute multiple sandboxes on the same host ensuring their network isolation.
+
+SEE can provision a subnetwork attaching to it the sandbox and taking care of its allocation and removal. This feature is controlled by the `network` field.
+
+The `network` field specifies the virtual subnetwork in which the container will be placed. As for the `domain`, a `configuration` file must be provided. Please refer to the `libvirt Networking <http://libvirt.org/formatnetwork.html>`_ page for configuring a virtual network.
+
+If provided, the `dynamic_address` will delegate to SEE the generation of a valid IPv4 address, the XML configuration must not contain an `ip` field if so. The User must specify the address and prefix of the network in which to create the subnetwork as well as the subnetwork prefix. SEE will generate a random subnetwork address according to the specifications avoiding collisions with other existing libvirt networks. A DHCP server will be provided within the subnetwork serving the sandbox guest Operating System.
+
+The following JSON snippet shows an example of a network configuration with dynamic address generation.
+
+::
+
+  {
+      "configuration": "/etc/myconfig/see/network.xml",
+      "dynamic_address":
+      {
+          "ipv4": "192.168.0.0",
+          "prefix": 16,
+          "subnet_prefix": 24
+      }
+  }
+
+In the following example, SEE will generate a subnetwork within the network 192.168.0.0/16. The subnetwork will have the address 192.168.X.0/24 where X is a random number in the range 0-255. The DHCP server will assign addresses to the sandbox in the range 192.168.X.[0-255].
