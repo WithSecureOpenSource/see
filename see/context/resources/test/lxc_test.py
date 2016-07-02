@@ -224,11 +224,13 @@ class ResourcesTest(unittest.TestCase):
 
     @mock.patch('see.context.resources.lxc.libvirt')
     @mock.patch('see.context.resources.lxc.domain_create')
+    @mock.patch('see.context.resources.network.create')
     @mock.patch('see.context.resources.network.lookup')
     @mock.patch('see.context.resources.network.delete')
     @mock.patch('see.context.resources.lxc.domain_delete')
     def test_cleanup_creation(self, delete_mock, network_delete_mock,
-                              network_lookup_mock, create_mock, libvirt_mock):
+                              network_lookup_mock, network_create_mock,
+                              create_mock, libvirt_mock):
         """Resources are released on cleanup. Network created"""
         resources = lxc.LXCResources('foo', {'domain': 'bar',
                                              'network': {}})
