@@ -14,7 +14,8 @@
 
 """SEE Linux Container Resources.
 
-This module provides an API for creating a virDomain controlling a Linux Container (LXC).
+This module provides an API for creating a virDomain controlling
+a Linux Container (LXC).
 
 Configuration::
 {
@@ -40,20 +41,26 @@ Configuration::
 
 Domain:
 
-The User must specify the path of the domain XML configuration file for the Linux Container.
+The User must specify the path of the domain XML configuration file
+for the Linux Container.
 
-The following fields in the configuration file are replaced or added if missing::
+The following fields in the configuration file are replaced or added if missing.
+
+::
 
  * name
  * uuid
  * devices
 
-The *filesystem* subfield controls the dynamic filesystem provisioning for the linux container.
-If provided, it can be a single or a list of mount points which will be provided to the Linux Container.
-The mount point is created on the Host side as *source_path*/*environment_uuid* and will be visible
-from the Linux Container as *target_path*.
+The *filesystem* subfield controls the dynamic filesystem provisioning
+for the linux container.
+If provided, it can be a single or a list of mount points
+which will be provided to the Linux Container.
+The mount point is created on the Host side as *source_path*/*environment_uuid*
+and will be visible from the Linux Container as *target_path*.
 
-If the *network* section is provided, the domain will be provided of an interface connected to the specified network.
+If the *network* section is provided,
+the domain will be provided of an interface connected to the specified network.
 
 Network::
 
