@@ -14,7 +14,8 @@
 
 """SEE QEMU Resources.
 
-This module provides an API for creating a virDomain controlling a QEMU Virtual Machine.
+This module provides an API for creating a virDomain controlling
+ a QEMU Virtual Machine.
 
 Configuration::
 {
@@ -24,41 +25,53 @@ Configuration::
   },
   "disk":
   {
-     "image": "/var/mystoragepool/image.qcow2",
-     "clone":
-       {
-          "storage_pool_path": "/var/data/pools",
-          "copy_on_write": true
-       }
+    "image": "/var/mystoragepool/image.qcow2",
+    "clone":
+    {
+      "storage_pool_path": "/var/data/pools",
+      "copy_on_write": true
+    }
   },
   "network":
   {
-    "configuration": "/etc/myconfig/see/network.xml",
-    "ip_autodiscovery": true
+    "configuration": "/path/of/network/configuration.xml",
+    "dynamic_address":
+    {
+      "ipv4": "192.168.0.0",
+      "prefix": 16,
+      "subnet_prefix": 24
+    }
   }
 }
 
 Domain:
 
-The User must specify the path of the domain XML configuration file for the Linux Container.
+The User must specify the path of the domain XML configuration file
+for the QEMU Virtual Machine.
 
-The following fields in the configuration file are replaced or added if missing::
+The following fields in the configuration file are replaced or added if missing.
+
+::
 
  * name
  * uuid
  * devices
 
-If the *network* section is provided, the domain will be provided of an interface connected to the specified network.
+If the *network* section is provided,
+the domain will be provided of an interface connected to the specified network.
 
 Disk:
 
-The Disk section must contain the image field with the absolute path to the disk image file.
+The Disk section must contain the image field with the absolute path
+to the disk image file.
 The disk image file must be placed in a valid libvirt storage pool.
 
-If the optional parameter clone is provided, the Disk will be cloned in a dedicated storage pool created in
-the storage_pool_path directory.
+If the optional parameter clone is provided,
+the Disk will be cloned in a dedicated storage pool created
+in the storage_pool_path directory.
 
-If copy_on_write is set to true the disk will be cloned with QCOW COW strategy, allowing to save disk space.
+If copy_on_write is set to true the disk will be cloned with QCOW COW strategy,
+allowing to save disk space.
 
 Network::
 

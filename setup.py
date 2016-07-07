@@ -12,7 +12,15 @@
 # implied.  See the License for the specific language governing
 # permissions and limitations under the License.
 
+import sys
 from setuptools import setup, find_packages
+
+required_packages = ['libvirt-python']
+
+# Python < 3.3 requires backported ipaddress package
+major_version, minor_version = sys.version_info[:2]
+if major_version < 3 or minor_version < 3:
+    required_packages.append('ipaddress')
 
 setup(
     name="python-see",
@@ -22,9 +30,7 @@ setup(
     description=("Sandboxed Execution Environment"),
     license="Apache License 2.0",
     packages=find_packages(),
-    install_requires=[
-        'libvirt-python',
-    ],
+    install_requires=required_packages,
     keywords="sandbox test automation",
     url="https://github.com/f-secure/see",
     classifiers=[

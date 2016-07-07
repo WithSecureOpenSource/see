@@ -20,133 +20,79 @@ Configuration::
 
 {
     "configuration": "/path/of/network/configuration.xml",
-    "ip_autodiscovery": true
+    "dynamic_address":
+    {
+        "ipv4": "192.168.0.0",
+        "prefix": 16,
+        "subnet_prefix": 24
+    }
 }
 
-The User can specify the path in which a custom XML configuration is stored, if not provided DEFAULT_CONFIG
-will be used.
+The User must specify the path of the libvirt XML configuration.
 
-The following fields in the configuration file are replaced or added if missing::
+The following fields in the configuration file are added or replaced.
+
+::
 
  * name
  * uuid
  * bridge
 
-If IP autodiscovery is set to True, the module will provide a valid IP address to the network in the range
-192.168.1.1 - 192.168.255.1. A DHCP server will be added as well giving addresses in range 192.168.X.2 - 192.168.X.128.
+The user can delegate to SEE the generation of a valid address
+for the newly created sub-network.
+This is useful for running multiple isolated Environments in the same network.
 
-Setting ip_autodiscovery True and providing a <ip> field in the custom XML file will cause RuntimeError to be raised.
+To do so, the dynamic_address field must be provided specifying the network
+address and prefix as well as the prefix for the created sub-network.
+
+SEE will generate a libvirt network with a random IP address in the range
+specified by the prefix and sub-prefix. The network will have DHCP server
+enabled for the guest virtual machines.
+
+In the given example, SEE will provide a random network in the range
+192.168.[0-225].0/24 with DHCP server assigning addresses in the range
+192.168.[0-225].[2-255].
+
+Setting dynamic_address and providing a <ip> field in the libvirt XML
+configuration will cause RuntimeError to be raised.
 
 """
 
-
 import libvirt
+import ipaddress
 import xml.etree.ElementTree as etree
 
 from see.context.resources.helpers import subelement
 
 
-DEFAULT_CONFIG = """<network><forward mode="nat"/></network>"""
-
-
-def network_xml(identifier, xml, address=None):
-    """Fills the XML file with the required fields.
-
-     * name
-     * uuid
-     * bridge
-     * ip
-     ** dhcp
-
-    """
-    netname = identifier[:8]
-    network = etree.fromstring(xml)
-
-    subelement(network, './/name', 'name', identifier)
-    subelement(network, './/uuid', 'uuid', identifier)
-    subelement(network, './/bridge', 'bridge', None, name='virbr-%s' % netname)
-
-    if address is not None:
-        set_address(network, address)
-
-    return etree.tostring(network).decode('utf-8')
-
-
-def set_address(network, address):
-    """Sets the given address to the network XML element.
-
-    A DHCP subelement is added, DHCP range is set between X.X.X.2 to X.X.X.128.
-
-    """
-    if network.find('.//ip') is None:
-        ip = etree.SubElement(network, 'ip', address=address, netmask='255.255.255.0')
-        dhcp_addr = address[:len(address) - 1]
-        dhcp = etree.SubElement(ip, 'dhcp')
-        etree.SubElement(dhcp, 'range', start=dhcp_addr + '2', end=dhcp_addr + '128')
-    else:
-        raise RuntimeError("Using IP autodiscovery with IP already set in XML configuration.")
-
-
-def valid_address(hypervisor):
-    """Retrieves a valid, available IP."""
-    address_pool = set(['192.168.%s.1' % x for x in range(0, 255)])
-    active = active_addresses(hypervisor)
-
-    try:
-        return address_pool.difference(set(active)).pop()
-    except KeyError:
-        raise RuntimeError("All IP addresses are in use")
-
-
-def active_addresses(hypervisor):
-    """Looks up from the existing network the already reserved IP addresses."""
-    active = []
-
-    for network in hypervisor.listNetworks():
-        try:
-            xml = hypervisor.networkLookupByName(network).XMLDesc(0)
-            address = etree.fromstring(xml).find('.//ip').get('address')
-            active.append(address)
-        except libvirt.libvirtError:  # race condition handling: the network has been destroyed meanwhile
-            continue
-
-    return active
-
-
-def create(hypervisor, identifier, configuration, max_attempts=10):
+def create(hypervisor, identifier, configuration):
     """Creates a virtual network according to the given configuration.
 
     @param hypervisor: (libvirt.virConnect) connection to libvirt hypervisor.
     @param identifier: (str) UUID for the virtual network.
     @param configuration: (dict) network configuration.
-    @param max_attempts: (int) maximum amount of attempts retrieving a free IP address.
-      Valid only if IP autodiscovery is set in configuration.
+
     @return: (libvirt.virNetwork) virtual network.
 
     """
-    autodiscovery = 'ip_autodiscovery' in configuration and configuration['ip_autodiscovery'] or False
-    if 'configuration' in configuration:
-        with open(configuration['configuration']) as config_file:
-            network_config = config_file.read()
-    else:
-        network_config = DEFAULT_CONFIG
+    with open(configuration['configuration']) as xml_file:
+        xml_string = xml_file.read()
 
-    if autodiscovery:
-        for attempt in range(max_attempts):
-            address = valid_address(hypervisor)
-            xml = network_xml(identifier, network_config, address)
-            try:
-                return hypervisor.networkCreateXML(xml)
-            except libvirt.libvirtError:  # race condition: another Environment took the same IP
-                continue
+    for _ in range(MAX_ATTEMPTS):
+        if 'dynamic_address' in configuration:
+            address = generate_address(hypervisor,
+                                       configuration['dynamic_address'])
+            xml_string = network_xml(identifier, xml_string, address=address)
         else:
-            raise RuntimeError("Too many attempts ({}) to get a valid IP address.".format(max_attempts))
-    else:
-        xml = network_xml(identifier, network_config)
+            xml_string = network_xml(identifier, xml_string)
+
         try:
-            return hypervisor.networkCreateXML(xml)
-        except libvirt.libvirtError as error:
-            raise RuntimeError("Unable to create new network: {}".format(error))
+            return hypervisor.networkCreateXML(xml_string)
+        except libvirt.libvirtError:  # another Environment took the same IP
+            continue
+    else:
+        raise RuntimeError(
+            "Exceeded Attempts ({}) to get IP address.".format(MAX_ATTEMPTS))
 
 
 def lookup(domain):
@@ -180,3 +126,91 @@ def delete(network):
         network.destroy()
     except libvirt.libvirtError as error:
         raise RuntimeError("Unable to destroy network: {}".format(error))
+
+
+def network_xml(identifier, xml, address=None):
+    """Fills the XML file with the required fields.
+
+     * name
+     * uuid
+     * bridge
+     * ip
+     ** dhcp
+
+    """
+    netname = identifier[:8]
+    network = etree.fromstring(xml)
+
+    subelement(network, './/name', 'name', identifier)
+    subelement(network, './/uuid', 'uuid', identifier)
+    subelement(network, './/bridge', 'bridge', None, name='virbr-%s' % netname)
+
+    if address is not None:
+        set_address(network, address)
+
+    return etree.tostring(network).decode('utf-8')
+
+
+def set_address(network, address):
+    """Sets the given address to the network XML element.
+
+    Libvirt bridge will have address and DHCP server configured
+    according to the subnet prefix length.
+
+    """
+    if network.find('.//ip') is not None:
+        raise RuntimeError("Address already specified in XML configuration.")
+
+    netmask = str(address.netmask)
+    ipv4 = str(address[1])
+    dhcp_start = str(address[2])
+    dhcp_end = str(address[-1])
+    ip = etree.SubElement(network, 'ip', address=ipv4, netmask=netmask)
+    dhcp = etree.SubElement(ip, 'dhcp')
+
+    etree.SubElement(dhcp, 'range', start=dhcp_start, end=dhcp_end)
+
+
+def generate_address(hypervisor, configuration):
+    """Generate a valid IP address according to the configuration."""
+    ipv4 = configuration['ipv4']
+    prefix = configuration['prefix']
+    subnet_prefix = configuration['subnet_prefix']
+    subnet_address = ipaddress.IPv4Network(u'/'.join((str(ipv4), str(prefix))))
+    net_address_pool = subnet_address.subnets(new_prefix=subnet_prefix)
+
+    return address_lookup(hypervisor, net_address_pool)
+
+
+def address_lookup(hypervisor, address_pool):
+    """Retrieves a valid and available network IP address."""
+    address_pool = set(address_pool)
+    active_addresses = set(active_network_addresses(hypervisor))
+
+    try:
+        return address_pool.difference(active_addresses).pop()
+    except KeyError:
+        raise RuntimeError("All IP addresses are in use")
+
+
+def active_network_addresses(hypervisor):
+    """Query libvirt for the already reserved addresses."""
+    active = []
+
+    for network in hypervisor.listNetworks():
+        try:
+            xml = hypervisor.networkLookupByName(network).XMLDesc(0)
+        except libvirt.libvirtError:  # network has been destroyed meanwhile
+            continue
+        else:
+            ip_element = etree.fromstring(xml).find('.//ip')
+            address = ip_element.get('address')
+            netmask = ip_element.get('netmask')
+
+            active.append(ipaddress.IPv4Network(u'/'.join((address, netmask)),
+                                                strict=False))
+
+    return active
+
+
+MAX_ATTEMPTS = 10
