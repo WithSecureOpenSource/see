@@ -175,7 +175,6 @@ class LXCResources(resources.Resources):
         self._domain = None
         self._network = None
         self._hypervisor = None
-        self._initialize()
 
     @property
     def hypervisor(self):
@@ -189,7 +188,7 @@ class LXCResources(resources.Resources):
     def network(self):
         return self._network
 
-    def _initialize(self):
+    def allocate(self):
         """Initializes libvirt resources."""
         self._hypervisor = libvirt.open(
             self.configuration.get('hypervisor', 'lxc:///'))
@@ -203,6 +202,15 @@ class LXCResources(resources.Resources):
 
         self._network = network.lookup(self._domain)
 
+    def deallocate(self):
+        """Releases all resources."""
+        if self._domain is not None:
+            self._domain_delete()
+        if self._network is not None and 'network' in self.configuration:
+            self._network_delete()
+        if self._hypervisor is not None:
+            self._hypervisor_delete()
+
     def _retrieve_network_name(self, configuration):
         network_name = None
 
@@ -212,15 +220,6 @@ class LXCResources(resources.Resources):
             network_name = new_network.name()
 
         return network_name
-
-    def cleanup(self):
-        """Releases all resources."""
-        if self._domain is not None:
-            self._domain_delete()
-        if self._network is not None and 'network' in self.configuration:
-            self._network_delete()
-        if self._hypervisor is not None:
-            self._hypervisor_delete()
 
     def _domain_delete(self):
         filesystem = None

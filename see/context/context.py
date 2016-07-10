@@ -52,6 +52,12 @@ class QEMUContextFactory(object):
         from see.context.resources.qemu import QEMUResources
 
         resources = QEMUResources(identifier, self.configuration)
+        try:
+            resources.allocate()
+        except Exception:
+            resources.deallocate()
+            raise
+
         return SeeContext(identifier, resources)
 
 
@@ -63,6 +69,12 @@ class LXCContextFactory(object):
         from see.context.resources.lxc import LXCResources
 
         resources = LXCResources(identifier, self.configuration)
+        try:
+            resources.allocate()
+        except Exception:
+            resources.deallocate()
+            raise
+
         return SeeContext(identifier, resources)
 
 
@@ -74,6 +86,12 @@ class VBoxContextFactory(object):
         from see.context.resources.vbox import VBoxResources
 
         resources = VBoxResources(identifier, self.configuration)
+        try:
+            resources.allocate()
+        except Exception:
+            resources.deallocate()
+            raise
+
         return SeeContext(identifier, resources)
 
 
@@ -105,7 +123,7 @@ class SeeContext(Context):
 
     def cleanup(self):
         """Claims the resources back."""
-        self._resources.cleanup()
+        self._resources.deallocate()
 
     @property
     def hypervisor(self):

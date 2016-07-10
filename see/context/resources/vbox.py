@@ -115,7 +115,7 @@ class VBoxResources(resources.Resources):
     def __init__(self, identifier, configuration):
         super(VBoxResources, self).__init__(identifier, configuration)
         self._domain = None
-        self._initialize()
+        self._hypervisor = None
 
     @property
     def hypervisor(self):
@@ -125,7 +125,7 @@ class VBoxResources(resources.Resources):
     def domain(self):
         return self._domain
 
-    def _initialize(self):
+    def allocate(self):
         """Initializes libvirt resources."""
         disk_path = self.configuration['disk']['image']
 
@@ -135,7 +135,7 @@ class VBoxResources(resources.Resources):
         self._domain = domain_create(self._hypervisor, self.identifier,
                                      self.configuration['domain'], disk_path)
 
-    def cleanup(self):
+    def deallocate(self):
         """Releases all resources."""
         if self._domain is not None:
             domain_delete(self._domain, self.logger)
