@@ -294,49 +294,62 @@ class ResourcesTest(unittest.TestCase):
     @mock.patch('see.context.resources.network.lookup')
     @mock.patch('see.context.resources.qemu.libvirt')
     @mock.patch('see.context.resources.qemu.domain_create')
-    def test_initialize_default(self, create_mock, libvirt_mock,
-                                network_lookup_mock):
-        """Resources initializer with no extra value."""
-        resources = qemu.QEMUResources('foo', {'domain': 'bar', 'disk': {'image': '/foo/bar'}})
+    def test_allocate_default(self, create_mock, libvirt_mock,
+                              network_lookup_mock):
+        """Resources allocater with no extra value."""
+        resources = qemu.QEMUResources('foo', {'domain': 'bar',
+                                               'disk': {'image': '/foo/bar'}})
+        resources.allocate()
         libvirt_mock.open.assert_called_with('qemu:///system')
-        create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar', '/foo/bar', network_name=None)
+        create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar',
+                                       '/foo/bar', network_name=None)
 
     @mock.patch('see.context.resources.network.lookup')
     @mock.patch('see.context.resources.qemu.libvirt')
     @mock.patch('see.context.resources.qemu.domain_create')
-    def test_initialize_hypervisor(self, create_mock, libvirt_mock,
-                                   network_lookup_mock):
-        """Resources initializer with hypervisor."""
-        resources = qemu.QEMUResources('foo', {'domain': 'bar', 'hypervisor': 'baz', 'disk': {'image': '/foo/bar'}})
+    def test_allocate_hypervisor(self, create_mock, libvirt_mock,
+                                 network_lookup_mock):
+        """Resources allocater with hypervisor."""
+        resources = qemu.QEMUResources('foo', {'domain': 'bar',
+                                               'hypervisor': 'baz',
+                                               'disk': {'image': '/foo/bar'}})
+        resources.allocate()
         libvirt_mock.open.assert_called_with('baz')
-        create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar', '/foo/bar', network_name=None)
+        create_mock.assert_called_with(resources.hypervisor, 'foo',
+                                       'bar', '/foo/bar', network_name=None)
 
     @mock.patch('see.context.resources.network.lookup')
     @mock.patch('see.context.resources.qemu.libvirt')
     @mock.patch('see.context.resources.qemu.domain_create')
     @mock.patch('see.context.resources.qemu.disk_clone')
     @mock.patch('see.context.resources.qemu.pool_create')
-    def test_initialize_clone(self, pool_mock, disk_mock, create_mock,
-                              libvirt_mock, network_lookup_mock):
-        """Resources initializer with disk cloning."""
+    def test_allocate_clone(self, pool_mock, disk_mock, create_mock,
+                            libvirt_mock, network_lookup_mock):
+        """Resources allocater with disk cloning."""
         pool = mock.MagicMock()
         pool_mock.return_value = pool
         volume = mock.Mock()
         volume.path.return_value = '/foo/bar'
         pool.storageVolLookupByName.return_value = volume
-        resources = qemu.QEMUResources('foo', {'domain': 'bar',
-                                               'disk': {'image': '/foo/bar.qcow2',
-                                                        'clone': {'storage_pool_path': '/baz'}}})
+        resources = qemu.QEMUResources('foo',
+                                       {'domain': 'bar',
+                                        'disk':
+                                        {'image': '/foo/bar.qcow2',
+                                         'clone':
+                                         {'storage_pool_path': '/baz'}}})
+        resources.allocate()
         pool_mock.assert_called_with(resources.hypervisor, 'foo', '/baz')
-        disk_mock.assert_called_with(resources.hypervisor, 'foo', pool, {'image': '/foo/bar.qcow2',
-                                                                         'clone': {'storage_pool_path': '/baz'}})
-        create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar', '/foo/bar', network_name=None)
+        disk_mock.assert_called_with(resources.hypervisor, 'foo', pool,
+                                     {'image': '/foo/bar.qcow2',
+                                      'clone': {'storage_pool_path': '/baz'}})
+        create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar',
+                                       '/foo/bar', network_name=None)
 
     @mock.patch('see.context.resources.qemu.libvirt')
     @mock.patch('see.context.resources.qemu.network')
     @mock.patch('see.context.resources.qemu.domain_create')
-    def test_initialize_network(self, create_mock, network_mock, libvirt_mock):
-        """Resources initializer with network."""
+    def test_allocate_network(self, create_mock, network_mock, libvirt_mock):
+        """Resources allocater with network."""
         network = mock.Mock()
         network.name.return_value = 'baz'
         network_mock.lookup = mock.Mock()
@@ -345,7 +358,9 @@ class ResourcesTest(unittest.TestCase):
         resources = qemu.QEMUResources('foo', {'domain': 'bar',
                                                'network': 'baz',
                                                'disk': {'image': '/foo/bar'}})
-        network_mock.create.assert_called_with(resources.hypervisor, 'foo', 'baz')
+        resources.allocate()
+        network_mock.create.assert_called_with(resources.hypervisor, 'foo',
+                                               'baz')
         create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar',
                                        '/foo/bar', network_name='baz')
 
@@ -355,17 +370,17 @@ class ResourcesTest(unittest.TestCase):
     @mock.patch('see.context.resources.network.delete')
     @mock.patch('see.context.resources.qemu.pool_delete')
     @mock.patch('see.context.resources.qemu.domain_delete')
-    def test_cleanup_no_creation(self, delete_mock, pool_delete_mock,
+    def test_deallocate_no_creation(self, delete_mock, pool_delete_mock,
                                  network_delete_mock, network_lookup_mock,
                                  create_mock, libvirt_mock):
-        """Resources are released on cleanup. Network and Pool not created."""
+        """Resources are released on deallocate network and Pool not created."""
         resources = qemu.QEMUResources('foo', {'domain': 'bar',
                                                'disk': {'image': '/foo/bar'}})
         resources._domain = mock.Mock()
         resources._network = mock.Mock()
         resources._hypervisor = mock.Mock()
         resources._storage_pool = mock.Mock()
-        resources.cleanup()
+        resources.deallocate()
         delete_mock.assert_called_with(resources.domain, mock.ANY)
         self.assertFalse(pool_delete_mock.called)
         self.assertFalse(network_delete_mock.called)
@@ -380,11 +395,11 @@ class ResourcesTest(unittest.TestCase):
     @mock.patch('see.context.resources.network.delete')
     @mock.patch('see.context.resources.qemu.pool_delete')
     @mock.patch('see.context.resources.qemu.domain_delete')
-    def test_cleanup_creation(self, delete_mock, pool_delete_mock,
+    def test_deallocate_creation(self, delete_mock, pool_delete_mock,
                               network_delete_mock, network_lookup_mock,
                               network_create_mock, disk_clone_mock,
                               pool_create_mock, create_mock, libvirt_mock):
-        """Resources are released on cleanup. Network and Pool created."""
+        """Resources are released on deallocate. Network and Pool created."""
         resources = qemu.QEMUResources('foo',
                                        {'domain': 'bar',
                                         'network': {},
@@ -395,7 +410,7 @@ class ResourcesTest(unittest.TestCase):
         resources._network = mock.Mock()
         resources._hypervisor = mock.Mock()
         resources._storage_pool = mock.Mock()
-        resources.cleanup()
+        resources.deallocate()
         delete_mock.assert_called_with(resources.domain, mock.ANY)
         network_delete_mock.assert_called_with(resources.network)
         pool_delete_mock.assert_called_with(resources.storage_pool, mock.ANY)

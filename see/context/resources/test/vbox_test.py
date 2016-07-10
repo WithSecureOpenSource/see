@@ -84,28 +84,37 @@ class DomainDeleteTest(unittest.TestCase):
 class ResourcesTest(unittest.TestCase):
     @mock.patch('see.context.resources.vbox.libvirt')
     @mock.patch('see.context.resources.vbox.domain_create')
-    def test_initialize_default(self, create_mock, libvirt_mock):
-        """Resources initializer with no extra value."""
-        resources = vbox.VBoxResources('foo', {'domain': 'bar', 'disk': {'image': '/foo/bar'}})
+    def test_allocate_default(self, create_mock, libvirt_mock):
+        """Resources allocater with no extra value."""
+        resources = vbox.VBoxResources('foo',
+                                       {'domain': 'bar',
+                                        'disk': {'image': '/foo/bar'}})
+        resources.allocate()
         libvirt_mock.open.assert_called_with('vbox:///session')
-        create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar', '/foo/bar')
+        create_mock.assert_called_with(resources.hypervisor, 'foo',
+                                       'bar', '/foo/bar')
 
     @mock.patch('see.context.resources.vbox.libvirt')
     @mock.patch('see.context.resources.vbox.domain_create')
-    def test_initialize_hypervisor(self, create_mock, libvirt_mock):
-        """Resources initializer with hypervisor."""
-        resources = vbox.VBoxResources('foo', {'domain': 'bar', 'hypervisor': 'baz', 'disk': {'image': '/foo/bar'}})
+    def test_allocate_hypervisor(self, create_mock, libvirt_mock):
+        """Resources allocater with hypervisor."""
+        resources = vbox.VBoxResources('foo', {'domain': 'bar',
+                                               'hypervisor': 'baz',
+                                               'disk': {'image': '/foo/bar'}})
+        resources.allocate()
         libvirt_mock.open.assert_called_with('baz')
-        create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar', '/foo/bar')
+        create_mock.assert_called_with(resources.hypervisor, 'foo',
+                                       'bar', '/foo/bar')
 
     @mock.patch('see.context.resources.vbox.libvirt')
     @mock.patch('see.context.resources.vbox.domain_create')
     @mock.patch('see.context.resources.vbox.domain_delete')
-    def test_cleanup(self, delete_mock, create_mock, libvirt_mock):
-        """Resources are released on cleanup."""
-        resources = vbox.VBoxResources('foo', {'domain': 'bar', 'disk': {'image': '/foo/bar'}})
+    def test_deallocate(self, delete_mock, create_mock, libvirt_mock):
+        """Resources are released on deallocate."""
+        resources = vbox.VBoxResources('foo', {'domain': 'bar',
+                                               'disk': {'image': '/foo/bar'}})
         resources._domain = mock.Mock()
         resources._hypervisor = mock.Mock()
-        resources.cleanup()
+        resources.deallocate()
         delete_mock.assert_called_with(resources.domain, mock.ANY)
         self.assertTrue(resources._hypervisor.close.called)

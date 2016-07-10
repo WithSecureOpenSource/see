@@ -177,4 +177,4 @@ class SeeContextTest(unittest.TestCase):
     def test_cleanup(self):
         """Resources are released"""
         self.context.cleanup()
-        self.assertTrue(self.resources.cleanup.called)
+        self.assertTrue(self.resources.deallocate.called)
