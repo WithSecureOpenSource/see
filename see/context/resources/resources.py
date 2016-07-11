@@ -32,8 +32,9 @@ class Resources(object):
     def hypervisor(self):
         """Hypervisor connection getter.
 
-        Once called this property must return an object of type libvirt.virConnect
-        connected to the type of hypervisor in which the Domain is running.
+        Once called, this property must return an object
+        of type libvirt.virConnect connected to the type of hypervisor
+        in which the Domain is running.
 
         This property must be provided.
 
@@ -44,8 +45,9 @@ class Resources(object):
     def domain(self):
         """Domain Object getter.
 
-        Once called this property must return an object of type libvirt.virDomain
-        representing the Domain which is intended to be controlled.
+        Once called, this property must return an object
+        of type libvirt.virDomain representing the Domain which is intended
+        to be controlled.
 
         This property must be provided.
 
@@ -56,8 +58,9 @@ class Resources(object):
     def network(self):
         """Network Object getter.
 
-        Once called this property must return an object of type libvirt.virNetwork
-        representing the Network which is intended to be controlled.
+        Once called, this property must return an object
+        of type libvirt.virNetwork representing the Network which is intended
+        to be controlled.
 
         """
         raise NotImplementedError("Network not provided.")
@@ -66,20 +69,33 @@ class Resources(object):
     def storage_pool(self):
         """Storage Pool Object getter.
 
-        Once called this property must return an object of type libvirt.virStoragePool
-        representing the Storage Pool which is intended to be controlled.
+        Once called, this property must return an object
+        of type libvirt.virStoragePool representing the Storage Pool
+        which is intended to be controlled.
 
         """
 
         raise NotImplementedError("Storage Pool not provided.")
 
-    def cleanup(self):
-        """Resources cleanup routine.
+    def allocate(self):
+        """Resources allocation routine.
 
-        This method is called once the Environment has ended, therefore it must ensure
-        that no allocated libvirt resource is left behind.
+        This method is called by the Environment allocation routine.
+        It must take care of libvirt resources allocation.
 
         This method must be provided.
 
         """
-        raise NotImplementedError("Storage Pool not provided.")
+        raise NotImplementedError("Allocate method not implemented.")
+
+    def deallocate(self):
+        """Resources cleanup routine.
+
+        This method is called once the Environment has ended,
+        therefore it must ensure that no allocated libvirt resources
+        are left behind.
+
+        This method must be provided.
+
+        """
+        raise NotImplementedError("Deallocate method not implemented.")

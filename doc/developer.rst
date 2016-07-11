@@ -152,7 +152,12 @@ The example in picture shows how the QEMU Context Factory is realised.
       def __call__(self, identifier):
           """Called by the Environment allocate() method."""
           resources = QemuResources(identifier, self.configuration)
-          resources.allocate()
+
+          try:
+              resources.allocate()
+          except Exception:
+              resources.deallocate()
+              raise
 
           return SEEContext(identifier, resources)
 

@@ -310,8 +310,6 @@ class QEMUResources(resources.Resources):
         self._network = None
         self._storage_pool = None
 
-        self._initialize()
-
     @property
     def hypervisor(self):
         return self._hypervisor
@@ -328,7 +326,7 @@ class QEMUResources(resources.Resources):
     def storage_pool(self):
         return self._storage_pool
 
-    def _initialize(self):
+    def allocate(self):
         """Initializes libvirt resources."""
         self._hypervisor = libvirt.open(
             self.configuration.get('hypervisor', 'qemu:///system'))
@@ -344,6 +342,17 @@ class QEMUResources(resources.Resources):
                                      disk_path, network_name=network_name)
 
         self._network = network.lookup(self._domain)
+
+    def deallocate(self):
+        """Releases all resources."""
+        if self._domain is not None:
+            domain_delete(self._domain, self.logger)
+        if self._network is not None:
+            self._network_delete()
+        if self._storage_pool is not None:
+            self._storage_pool_delete()
+        if self._hypervisor is not None:
+            self._hypervisor_delete()
 
     def _retrieve_pool(self, configuration):
         if 'clone' in configuration:
@@ -377,17 +386,6 @@ class QEMUResources(resources.Resources):
             network_name = new_network.name()
 
         return network_name
-
-    def cleanup(self):
-        """Releases all resources."""
-        if self._domain is not None:
-            domain_delete(self._domain, self.logger)
-        if self._network is not None:
-            self._network_delete()
-        if self._storage_pool is not None:
-            self._storage_pool_delete()
-        if self._hypervisor is not None:
-            self._hypervisor_delete()
 
     def _network_delete(self):
         if 'network' in self.configuration:
