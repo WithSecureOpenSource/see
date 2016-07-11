@@ -82,7 +82,7 @@ class SeeContextTest(unittest.TestCase):
         self.assertEqual(self.context._mac_address, '00:00:00:00')
 
     def test_no_mac(self):
-        """IPv4 address is None if no MAC address is provided."""
+        """MAC address is None if no interface is provided."""
         string_xml = """<devices></devices>"""
         self.context.domain.XMLDesc.return_value = string_xml
         self.assertEqual(self.context.mac_address, None)
@@ -90,45 +90,29 @@ class SeeContextTest(unittest.TestCase):
 
     def test_ip4_addr(self):
         """IP address is set if not present."""
-        string_xml = """<domain>
-                          <devices>
-                            <interface type="network">
-                              <mac address="00:00:00:00" />
-                            </interface>
-                          </devices>
-                        </domain>"""
-        arptable = """0.0.0.0 something weird 00:00:00:00"""
-        self.context.domain.XMLDesc.return_value = string_xml
+        self.context._mac_address = "00:00:00:00"
+        self.context.network.DHCPLeases.return_value = [{
+            'ipaddr': '0.0.0.0',
+            'mac': '00:00:00:00'}]
 
-        with mock.patch('see.context.context.open',
-                        mock.mock_open(read_data=arptable),
-                        create=True):
-            self.assertEqual(self.context.ip4_address, '0.0.0.0')
-            self.assertEqual(self.context._ip4_address, '0.0.0.0')
+        self.assertEqual(self.context.ip4_address, '0.0.0.0')
+        self.assertEqual(self.context._ip4_address, '0.0.0.0')
 
-    def test_ip4_no_mac(self):
-        """IPv4 address is None if no MAC address is provided."""
-        string_xml = """<devices></devices>"""
-        self.context.domain.XMLDesc.return_value = string_xml
+    def test_ip4_no_interface(self):
+        """IPv4 address is None no interface is provided."""
+        self.context.domain.XMLDesc.return_value = "<domain></domain>"
+        self.context.network.DHCPLeases.return_value = [{
+            'ipaddr': '0.0.0.0',
+            'mac': '00:00:00:00'}]
+
         self.assertEqual(self.context.ip4_address, None)
-        self.assertEqual(self.context._ip4_address, None)
 
-    def test_ip4_no_address(self):
-        """IPv4 address is None if ARP table lookup misses."""
-        string_xml = """<domain>
-                          <devices>
-                            <interface type="network">
-                              <mac address="00:00:00:00" />
-                            </interface>
-                          </devices>
-                        </domain>"""
-        arptable = """0.0.0.0 something weird 11:11:11:11"""
-        self.context.domain.XMLDesc.return_value = string_xml
+    def test_ip4_no_addresses(self):
+        """IPv4 address is None interface has no associated address."""
+        self.context._mac_address = "00:00:00:00"
+        self.context.network.DHCPLeases.return_value = []
 
-        with mock.patch('see.context.context.open',
-                        mock.mock_open(read_data=arptable),
-                        create=True):
-            self.assertEqual(self.context.ip4_address, None)
+        self.assertEqual(self.context.ip4_address, None)
 
     def test_state_transition(self):
         """State transition map is honoured."""
