@@ -92,7 +92,7 @@ def create(hypervisor, identifier, configuration):
             continue
     else:
         raise RuntimeError(
-            "Exceeded Attempts ({}) to get IP address.".format(MAX_ATTEMPTS))
+            "Exceeded attempts ({}) to get IP address.".format(MAX_ATTEMPTS))
 
 
 def lookup(domain):
@@ -164,7 +164,7 @@ def set_address(network, address):
     netmask = str(address.netmask)
     ipv4 = str(address[1])
     dhcp_start = str(address[2])
-    dhcp_end = str(address[-1])
+    dhcp_end = str(address[-2])
     ip = etree.SubElement(network, 'ip', address=ipv4, netmask=netmask)
     dhcp = etree.SubElement(ip, 'dhcp')
 
