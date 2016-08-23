@@ -76,15 +76,15 @@ def create(hypervisor, identifier, configuration):
 
     """
     with open(configuration['configuration']) as xml_file:
-        xml_string = xml_file.read()
+        xml_config = xml_file.read()
 
     for _ in range(MAX_ATTEMPTS):
         if 'dynamic_address' in configuration:
             address = generate_address(hypervisor,
                                        configuration['dynamic_address'])
-            xml_string = network_xml(identifier, xml_string, address=address)
+            xml_string = network_xml(identifier, xml_config, address=address)
         else:
-            xml_string = network_xml(identifier, xml_string)
+            xml_string = network_xml(identifier, xml_config)
 
         try:
             return hypervisor.networkCreateXML(xml_string)
