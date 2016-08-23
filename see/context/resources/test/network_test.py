@@ -91,7 +91,7 @@ class NetworkXMLTest(unittest.TestCase):
           <forward mode="nat" />
         <name>foo</name><uuid>foo</uuid><bridge name="virbr-foo" />""" + \
             """<ip address="192.168.1.1" netmask="255.255.255.0">""" + \
-            """<dhcp><range end="192.168.1.255" start="192.168.1.2" />""" +\
+            """<dhcp><range end="192.168.1.254" start="192.168.1.2" />""" +\
             """</dhcp></ip></network>"""
         address = ipaddress.IPv4Network(u'192.168.1.0/24')
         results = network.network_xml('foo', config, address=address)
@@ -172,7 +172,7 @@ class CreateTest(unittest.TestCase):
                 network.create(hypervisor, 'foo', configuration)
             except RuntimeError as error:
                 self.assertEqual(str(error),
-                                 "Exceeded Attempts (3) to get IP address.")
+                                 "Exceeded attempts (3) to get IP address.")
 
     def test_create_xml(self):
         """Provided XML is used."""
