@@ -156,20 +156,23 @@ class ValidAddressTest(unittest.TestCase):
 class CreateTest(unittest.TestCase):
     def test_create_too_many_attempts(self):
         """RuntimeError is raised if too many fails to create a network."""
-        network.MAX_ATTEMPTS = 1
+        xml = '<network><forward mode="nat"/></network>'
+        network.MAX_ATTEMPTS = 3
         hypervisor = mock.Mock()
         hypervisor.listNetworks.return_value = []
         hypervisor.networkCreateXML.side_effect = libvirt.libvirtError('BOOM')
-        xml = '<foo>bar<foo/>'
-        configuration = {'configuration': 'baz'}
+        configuration = {'configuration': 'bar',
+                         'dynamic_address': {'ipv4': '10.0.0.0',
+                                             'prefix': 16,
+                                             'subnet_prefix': 24}}
 
         with mock.patch('see.context.resources.network.open',
                         mock.mock_open(read_data=xml), create=True):
-            with mock.patch('see.context.resources.network.network_xml'):
-                with self.assertRaises(RuntimeError) as error:
-                    network.create(hypervisor, 'foo', configuration)
-                    self.assertEqual(str(error),
-                                     "Exceeded Attempts (1) to get IP address.")
+            try:
+                network.create(hypervisor, 'foo', configuration)
+            except RuntimeError as error:
+                self.assertEqual(str(error),
+                                 "Exceeded Attempts (3) to get IP address.")
 
     def test_create_xml(self):
         """Provided XML is used."""
