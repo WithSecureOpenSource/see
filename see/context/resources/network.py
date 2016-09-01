@@ -76,15 +76,15 @@ def create(hypervisor, identifier, configuration):
 
     """
     with open(configuration['configuration']) as xml_file:
-        xml_string = xml_file.read()
+        xml_config = xml_file.read()
 
     for _ in range(MAX_ATTEMPTS):
         if 'dynamic_address' in configuration:
             address = generate_address(hypervisor,
                                        configuration['dynamic_address'])
-            xml_string = network_xml(identifier, xml_string, address=address)
+            xml_string = network_xml(identifier, xml_config, address=address)
         else:
-            xml_string = network_xml(identifier, xml_string)
+            xml_string = network_xml(identifier, xml_config)
 
         try:
             return hypervisor.networkCreateXML(xml_string)
@@ -92,7 +92,7 @@ def create(hypervisor, identifier, configuration):
             continue
     else:
         raise RuntimeError(
-            "Exceeded Attempts ({}) to get IP address.".format(MAX_ATTEMPTS))
+            "Exceeded attempts ({}) to get IP address.".format(MAX_ATTEMPTS))
 
 
 def lookup(domain):
@@ -164,7 +164,7 @@ def set_address(network, address):
     netmask = str(address.netmask)
     ipv4 = str(address[1])
     dhcp_start = str(address[2])
-    dhcp_end = str(address[-1])
+    dhcp_end = str(address[-2])
     ip = etree.SubElement(network, 'ip', address=ipv4, netmask=netmask)
     dhcp = etree.SubElement(ip, 'dhcp')
 
