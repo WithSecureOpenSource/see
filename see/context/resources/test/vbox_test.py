@@ -14,7 +14,7 @@ def compare(text1, text2):
 
 class DomainXMLTest(unittest.TestCase):
     def test_domain_xml(self):
-        """Domain XML."""
+        """VBOX Domain XML."""
         config = """<domain></domain>"""
         expected = """<domain><name>foo</name><uuid>foo</uuid><devices><disk device="disk" type="file">""" +\
                    """<source file="/diskpath.vdi" /></disk></devices></domain>"""
@@ -22,7 +22,7 @@ class DomainXMLTest(unittest.TestCase):
         self.assertEqual(results, expected, compare(results, expected))
 
     def test_domain_xml_modifies(self):
-        """Fields are modified if existing."""
+        """VBOX Fields are modified if existing."""
         config = """<domain><name>bar</name><uuid>bar</uuid><devices><disk device="disk" type="file">""" +\
                  """<source file="/bar"/></disk></devices></domain>"""
         expected = """<domain><name>foo</name><uuid>foo</uuid><devices><disk device="disk" type="file">""" +\
@@ -33,7 +33,7 @@ class DomainXMLTest(unittest.TestCase):
 
 class DomainCreateTest(unittest.TestCase):
     def test_create(self):
-        """Create domain."""
+        """VBOX Create domain."""
         xml = """<domain></domain>"""
         expected = """<domain><name>foo</name><uuid>foo</uuid><devices><disk device="disk" type="file">""" +\
                    """<source file="/diskpath.vdi" /></disk></devices></domain>"""
@@ -47,7 +47,7 @@ class DomainCreateTest(unittest.TestCase):
 
 class DomainDeleteTest(unittest.TestCase):
     def test_delete_destroy(self):
-        """Domain is destroyed if active."""
+        """VBOX Domain is destroyed if active."""
         domain = mock.Mock()
         logger = mock.Mock()
         domain.isActive.return_value = True
@@ -55,7 +55,7 @@ class DomainDeleteTest(unittest.TestCase):
         self.assertTrue(domain.destroy.called)
 
     def test_delete_destroy_error(self):
-        """Domain destroy raises error."""
+        """VBOX Domain destroy raises error."""
         domain = mock.Mock()
         logger = mock.Mock()
         domain.isActive.return_value = True
@@ -64,7 +64,7 @@ class DomainDeleteTest(unittest.TestCase):
         self.assertTrue(domain.undefine.called)
 
     def test_delete_undefine(self):
-        """Domain is undefined."""
+        """VBOX Domain is undefined."""
         domain = mock.Mock()
         logger = mock.Mock()
         domain.isActive.return_value = False
@@ -72,7 +72,7 @@ class DomainDeleteTest(unittest.TestCase):
         self.assertTrue(domain.undefine.called)
 
     def test_delete_undefine_snapshots(self):
-        """Domain undefine with snapshots metadata."""
+        """VBOX Domain undefine with snapshots metadata."""
         domain = mock.Mock()
         logger = mock.Mock()
         domain.isActive.return_value = False
@@ -85,7 +85,7 @@ class ResourcesTest(unittest.TestCase):
     @mock.patch('see.context.resources.vbox.libvirt')
     @mock.patch('see.context.resources.vbox.domain_create')
     def test_allocate_default(self, create_mock, libvirt_mock):
-        """Resources allocater with no extra value."""
+        """VBOX Resources allocater with no extra value."""
         resources = vbox.VBoxResources('foo',
                                        {'domain': 'bar',
                                         'disk': {'image': '/foo/bar'}})
@@ -97,7 +97,7 @@ class ResourcesTest(unittest.TestCase):
     @mock.patch('see.context.resources.vbox.libvirt')
     @mock.patch('see.context.resources.vbox.domain_create')
     def test_allocate_hypervisor(self, create_mock, libvirt_mock):
-        """Resources allocater with hypervisor."""
+        """VBOX Resources allocater with hypervisor."""
         resources = vbox.VBoxResources('foo', {'domain': 'bar',
                                                'hypervisor': 'baz',
                                                'disk': {'image': '/foo/bar'}})
@@ -110,7 +110,7 @@ class ResourcesTest(unittest.TestCase):
     @mock.patch('see.context.resources.vbox.domain_create')
     @mock.patch('see.context.resources.vbox.domain_delete')
     def test_deallocate(self, delete_mock, create_mock, libvirt_mock):
-        """Resources are released on deallocate."""
+        """VBOX Resources are released on deallocate."""
         resources = vbox.VBoxResources('foo', {'domain': 'bar',
                                                'disk': {'image': '/foo/bar'}})
         resources._domain = mock.Mock()
