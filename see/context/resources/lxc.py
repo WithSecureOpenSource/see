@@ -34,8 +34,13 @@ Configuration::
   }
   "network":
   {
-    "configuration": "/etc/myconfig/see/network.xml",
-    "ip_autodiscovery": true
+    "configuration": "/path/of/network/configuration.xml",
+    "dynamic_address":
+    {
+      "ipv4": "192.168.0.0",
+      "prefix": 16,
+      "subnet_prefix": 24
+    }
   }
 }
 
@@ -190,17 +195,22 @@ class LXCResources(resources.Resources):
 
     def allocate(self):
         """Initializes libvirt resources."""
+        network_name = None
+
         self._hypervisor = libvirt.open(
             self.configuration.get('hypervisor', 'lxc:///'))
 
-        network_name = self._retrieve_network_name(
-            self.configuration.get('network'))
+        if 'network' in self.configuration:
+            self._network = network.create(self._hypervisor, self.identifier,
+                                           self.configuration['network'])
+            network_name = self._network.name()
 
         self._domain = domain_create(self._hypervisor, self.identifier,
                                      self.configuration['domain'],
                                      network_name=network_name)
+        if self._network is None:
+            self._network = network.lookup(self._domain)
 
-        self._network = network.lookup(self._domain)
 
     def deallocate(self):
         """Releases all resources."""
@@ -210,16 +220,6 @@ class LXCResources(resources.Resources):
             self._network_delete()
         if self._hypervisor is not None:
             self._hypervisor_delete()
-
-    def _retrieve_network_name(self, configuration):
-        network_name = None
-
-        if configuration is not None:
-            new_network = network.create(self._hypervisor, self.identifier,
-                                         configuration)
-            network_name = new_network.name()
-
-        return network_name
 
     def _domain_delete(self):
         filesystem = None

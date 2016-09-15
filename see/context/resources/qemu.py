@@ -136,11 +136,13 @@ def domain_xml(identifier, xml, disk_path, network_name=None):
     subelement(domain, './/name', 'name', identifier)
     subelement(domain, './/uuid', 'uuid', identifier)
     devices = subelement(domain, './/devices', 'devices', None)
-    disk = subelement(devices, './/disk', 'disk', None, type='file', device='disk')
+    disk = subelement(devices, './/disk', 'disk', None, type='file',
+                      device='disk')
     subelement(disk, './/source', 'source', None, file=disk_path)
 
     if network_name is not None:
-        network = subelement(devices, './/interface[@type="network"]', 'interface', None, type='network')
+        network = subelement(devices, './/interface[@type="network"]',
+                             'interface', None, type='network')
         subelement(network, './/source', 'source', None, network=network_name)
 
     return etree.tostring(domain).decode('utf-8')
@@ -328,20 +330,26 @@ class QEMUResources(resources.Resources):
 
     def allocate(self):
         """Initializes libvirt resources."""
+        network_name = None
+
         self._hypervisor = libvirt.open(
             self.configuration.get('hypervisor', 'qemu:///system'))
 
-        self._storage_pool = self._retrieve_pool(self.configuration['disk'])
+        self._storage_pool = self._retrieve_pool()
 
-        disk_path = self._retrieve_disk_path(self.configuration['disk'])
-        network_name = self._retrieve_network_name(
-            self.configuration.get('network'))
+        if 'network' in self.configuration:
+            self._network = network.create(self._hypervisor, self.identifier,
+                                           self.configuration['network'])
+            network_name = self._network.name()
+
+        disk_path = self._retrieve_disk_path()
 
         self._domain = domain_create(self._hypervisor, self.identifier,
                                      self.configuration['domain'],
                                      disk_path, network_name=network_name)
 
-        self._network = network.lookup(self._domain)
+        if self._network is None:
+            self._network = network.lookup(self._domain)
 
     def deallocate(self):
         """Releases all resources."""
@@ -354,8 +362,8 @@ class QEMUResources(resources.Resources):
         if self._hypervisor is not None:
             self._hypervisor_delete()
 
-    def _retrieve_pool(self, configuration):
-        if 'clone' in configuration:
+    def _retrieve_pool(self):
+        if 'clone' in self.configuration['disk']:
             return pool_create(
                 self._hypervisor, self.identifier,
                 self.configuration['disk']['clone']['storage_pool_path'])
@@ -363,11 +371,11 @@ class QEMUResources(resources.Resources):
             return pool_lookup(self._hypervisor,
                                self.configuration['disk']['image'])
 
-    def _retrieve_disk_path(self, configuration):
-        if 'clone' in configuration:
-            return self._clone_disk(configuration)
+    def _retrieve_disk_path(self):
+        if 'clone' in self.configuration['disk']:
+            return self._clone_disk(self.configuration['disk'])
         else:
-            return configuration['image']
+            return self.configuration['disk']['image']
 
     def _clone_disk(self, configuration):
         """Clones the disk and returns the path to the new disk."""
@@ -376,16 +384,6 @@ class QEMUResources(resources.Resources):
         disk_name = self._storage_pool.listVolumes()[0]
 
         return self._storage_pool.storageVolLookupByName(disk_name).path()
-
-    def _retrieve_network_name(self, configuration):
-        network_name = None
-
-        if configuration is not None:
-            new_network = network.create(self._hypervisor, self.identifier,
-                                         configuration)
-            network_name = new_network.name()
-
-        return network_name
 
     def _network_delete(self):
         if 'network' in self.configuration:
