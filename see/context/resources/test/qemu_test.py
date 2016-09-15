@@ -295,7 +295,8 @@ class ResourcesTest(unittest.TestCase):
     @mock.patch('see.context.resources.qemu.libvirt')
     @mock.patch('see.context.resources.qemu.domain_create')
     def test_allocate_default(self, create_mock, libvirt_mock, network_mock):
-        """QEMU Resources allocater with no extra value."""
+        """QEMU Resources allocator with no extra value."""
+        network_mock.lookup.return_value = None
         resources = qemu.QEMUResources('foo', {'domain': 'bar',
                                                'disk': {'image': '/foo/bar'}})
         resources.allocate()
@@ -306,7 +307,8 @@ class ResourcesTest(unittest.TestCase):
     @mock.patch('see.context.resources.qemu.libvirt')
     @mock.patch('see.context.resources.qemu.domain_create')
     def test_allocate_hypervisor(self, create_mock, libvirt_mock, network_mock):
-        """QEMU Resources allocater with hypervisor."""
+        """QEMU Resources allocator with hypervisor."""
+        network_mock.lookup.return_value = None
         resources = qemu.QEMUResources('foo', {'domain': 'bar',
                                                'hypervisor': 'baz',
                                                'disk': {'image': '/foo/bar'}})
@@ -321,12 +323,13 @@ class ResourcesTest(unittest.TestCase):
     @mock.patch('see.context.resources.qemu.pool_create')
     def test_allocate_clone(self, pool_mock, disk_mock, create_mock,
                             libvirt_mock, network_mock):
-        """QEMU Resources allocater with disk cloning."""
+        """QEMU Resources allocator with disk cloning."""
         pool = mock.MagicMock()
         pool_mock.return_value = pool
         volume = mock.Mock()
         volume.path.return_value = '/foo/bar'
         pool.storageVolLookupByName.return_value = volume
+        network_mock.lookup.return_value = None
         resources = qemu.QEMUResources('foo',
                                        {'domain': 'bar',
                                         'disk':
@@ -344,7 +347,7 @@ class ResourcesTest(unittest.TestCase):
     @mock.patch('see.context.resources.qemu.libvirt')
     @mock.patch('see.context.resources.qemu.domain_create')
     def test_allocate_network(self, create_mock, libvirt_mock, network_mock):
-        """QEMU Resources allocater with network."""
+        """QEMU Resources allocator with network."""
         network = mock.Mock()
         network.name.return_value = 'baz'
         network_mock.lookup = mock.Mock()
@@ -358,6 +361,26 @@ class ResourcesTest(unittest.TestCase):
                                                'baz')
         create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar',
                                        '/foo/bar', network_name='baz')
+
+    @mock.patch('see.context.resources.qemu.libvirt')
+    @mock.patch('see.context.resources.qemu.domain_create')
+    def test_allocate_fail(self, create_mock, libvirt_mock, network_mock):
+        """QEMU network is destroyed on allocation fail."""
+        network = mock.Mock()
+        network.name.return_value = 'baz'
+        network_mock.lookup = mock.Mock()
+        network_mock.create.return_value = network
+
+        resources = qemu.QEMUResources('foo', {'domain': 'bar',
+                                               'network': 'baz',
+                                               'disk': {'image': '/foo/bar'}})
+        create_mock.side_effect = libvirt.libvirtError('BOOM')
+        with self.assertRaises(libvirt.libvirtError):
+            resources.allocate()
+
+        resources.deallocate()
+
+        network_mock.delete.assert_called_with(resources.network)
 
     @mock.patch('see.context.resources.qemu.pool_delete')
     @mock.patch('see.context.resources.qemu.domain_delete')

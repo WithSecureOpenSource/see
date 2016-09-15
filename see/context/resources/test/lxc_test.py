@@ -172,7 +172,8 @@ class ResourcesTest(unittest.TestCase):
     @mock.patch('see.context.resources.lxc.domain_create')
     def test_allocate_default(self, create_mock, libvirt_mock,
                               network_mock):
-        """LXC Resources allocater with no extra value."""
+        """LXC Resources allocator with no extra value."""
+        network_mock.lookup.return_value = None
         resources = lxc.LXCResources('foo', {'domain': 'bar'})
         resources.allocate()
         libvirt_mock.open.assert_called_with('lxc:///')
@@ -183,7 +184,8 @@ class ResourcesTest(unittest.TestCase):
     @mock.patch('see.context.resources.lxc.domain_create')
     def test_allocate_hypervisor(self, create_mock, libvirt_mock,
                                  network_mock):
-        """LXC Resources allocater with hypervisor."""
+        """LXC Resources allocator with hypervisor."""
+        network_mock.lookup.return_value = None
         resources = lxc.LXCResources('foo', {'domain': 'bar',
                                              'hypervisor': 'baz'})
         resources.allocate()
@@ -194,7 +196,7 @@ class ResourcesTest(unittest.TestCase):
     @mock.patch('see.context.resources.lxc.libvirt')
     @mock.patch('see.context.resources.lxc.domain_create')
     def test_allocate_network(self, create_mock, libvirt_mock, network_mock):
-        """LXC Resources allocater with network."""
+        """LXC Resources allocator with network."""
         network = mock.Mock()
         network.name.return_value = 'baz'
         network_mock.lookup = mock.Mock()
@@ -208,6 +210,25 @@ class ResourcesTest(unittest.TestCase):
                                                'foo', 'baz')
         create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar',
                                        network_name='baz')
+
+    @mock.patch('see.context.resources.lxc.libvirt')
+    @mock.patch('see.context.resources.lxc.domain_create')
+    def test_allocate_fail(self, create_mock, libvirt_mock, network_mock):
+        """LXC network is destroyed on allocation fail."""
+        network = mock.Mock()
+        network.name.return_value = 'baz'
+        network_mock.lookup = mock.Mock()
+        network_mock.create.return_value = network
+
+        resources = lxc.LXCResources('foo', {'domain': 'bar',
+                                             'network': 'baz',
+                                             'disk': {'image': '/foo/bar'}})
+        create_mock.side_effect = libvirt.libvirtError('BOOM')
+        with self.assertRaises(libvirt.libvirtError):
+            resources.allocate()
+        resources.deallocate()
+
+        network_mock.delete.assert_called_with(resources.network)
 
     @mock.patch('see.context.resources.lxc.domain_delete')
     def test_deallocate_no_creation(self, delete_mock, network_mock):
