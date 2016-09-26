@@ -18,7 +18,7 @@ def compare(text1, text2):
 
 class NetworkXMLTest(unittest.TestCase):
     def test_ip(self):
-        """XML with given IP."""
+        """NETWORK XML with given IP."""
         config = """<network>
           <forward mode="nat"/>
           <ip address="192.168.235.1" netmask="255.255.255.0">
@@ -40,7 +40,7 @@ class NetworkXMLTest(unittest.TestCase):
         self.assertEqual(results, expected, compare(results, expected))
 
     def test_ip_modifies(self):
-        """Name and UUID are modified if existing."""
+        """NETWORK Name and UUID are modified if existing."""
         config = """<network>
           <name>bar</name>
           <uuid>bar</uuid>
@@ -68,7 +68,7 @@ class NetworkXMLTest(unittest.TestCase):
         self.assertEqual(results, expected, compare(results, expected))
 
     def test_ip_address(self):
-        """RuntimeError is raised if both address and <ip> are specified."""
+        """NETWORK RuntimeError is raised if both address and <ip> are specified."""
         config = """<network>
           <forward mode="nat"/>
           <ip address="192.168.235.1" netmask="255.255.255.0">
@@ -82,7 +82,7 @@ class NetworkXMLTest(unittest.TestCase):
             network.network_xml('foo', config, address=True)
 
     def test_no_ip_address(self):
-        """XML with address."""
+        """NETWORK XML with address."""
         config = """<network>
           <forward mode="nat"/>
         </network>
@@ -100,7 +100,7 @@ class NetworkXMLTest(unittest.TestCase):
 
 class ValidAddressTest(unittest.TestCase):
     def test_valid(self):
-        """A valid address is retrieved."""
+        """NETWORK A valid address is retrieved."""
         virnetwork = mock.Mock()
         hypervisor = mock.Mock()
         virnetwork.XMLDesc.side_effect = (
@@ -118,7 +118,7 @@ class ValidAddressTest(unittest.TestCase):
                          for i in range(1, 256)])
 
     def test_invalid(self):
-        """ValueError is raised if configuration address is invalid."""
+        """NETWORK ValueError is raised if configuration address is invalid."""
         virnetwork = mock.Mock()
         hypervisor = mock.Mock()
         virnetwork.XMLDesc.side_effect = (
@@ -135,7 +135,7 @@ class ValidAddressTest(unittest.TestCase):
             network.generate_address(hypervisor, configuration)
 
     def test_no_ip(self):
-        """RuntimeError is raised if all IPs are taken."""
+        """NETWORK RuntimeError is raised if all IPs are taken."""
         counter = itertools.count()
         virnetwork = mock.Mock()
         hypervisor = mock.Mock()
@@ -155,7 +155,7 @@ class ValidAddressTest(unittest.TestCase):
 
 class CreateTest(unittest.TestCase):
     def test_create_too_many_attempts(self):
-        """RuntimeError is raised if too many fails to create a network."""
+        """NETWORK RuntimeError is raised if too many fails to create a network."""
         xml = '<network><forward mode="nat"/></network>'
         network.MAX_ATTEMPTS = 3
         hypervisor = mock.Mock()
@@ -175,7 +175,7 @@ class CreateTest(unittest.TestCase):
                                  "Exceeded attempts (3) to get IP address.")
 
     def test_create_xml(self):
-        """Provided XML is used."""
+        """NETWORK Provided XML is used."""
         xml = """<network><forward mode="nat"/><ip address="192.168.1.1" netmask="255.255.255.0">""" + \
               """<dhcp><range end="192.168.1.128" start="192.168.1.2"/></dhcp></ip></network>"""
         expected = """<network><forward mode="nat" /><ip address="192.168.1.1" netmask="255.255.255.0">""" + \
@@ -189,7 +189,7 @@ class CreateTest(unittest.TestCase):
         self.assertEqual(results, expected, compare(results, expected))
 
     def test_create_xml_error(self):
-        """RuntimeError is raised in case of creation error."""
+        """NETWORK RuntimeError is raised in case of creation error."""
         xml = """<network><forward mode="nat"/><ip address="192.168.1.1" netmask="255.255.255.0">""" + \
               """<dhcp><range end="192.168.1.128" start="192.168.1.2"/></dhcp></ip></network>"""
         hypervisor = mock.Mock()
@@ -201,7 +201,7 @@ class CreateTest(unittest.TestCase):
                 self.assertEqual(str(error), "Unable to create new network: BOOM.")
 
     def test_delete(self):
-        """Network is destroyed on delete()."""
+        """NETWORK Network is destroyed on delete()."""
         net = mock.Mock()
         network.delete(net)
         self.assertTrue(net.destroy.called)
@@ -209,7 +209,7 @@ class CreateTest(unittest.TestCase):
 
 class LookupTest(unittest.TestCase):
     def test_lookup(self):
-        """Network lookup passes correct parameters to hypervisor."""
+        """NETWORK Network lookup passes correct parameters to hypervisor."""
         xml = """<domain><interface type="network">""" +\
               """<source network="foo" /></interface></domain>"""
         domain = mock.Mock()
@@ -221,7 +221,7 @@ class LookupTest(unittest.TestCase):
         hypervisor.networkLookupByName.assert_called_with('foo')
 
     def test_lookup_no_network(self):
-        """None is return if domain is not associated with any Network."""
+        """NETWORK None is return if domain is not associated with any Network."""
         xml = """<domain></domain>"""
         domain = mock.Mock()
         hypervisor = mock.Mock()
