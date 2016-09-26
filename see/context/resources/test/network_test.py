@@ -171,8 +171,10 @@ class CreateTest(unittest.TestCase):
             try:
                 network.create(hypervisor, 'foo', configuration)
             except RuntimeError as error:
-                self.assertEqual(str(error),
-                                 "Exceeded attempts (3) to get IP address.")
+                self.assertEqual(
+                    error.args,
+                    ("Exceeded failed attempts (3) to get IP address.",
+                     "Last error: BOOM"))
 
     def test_create_xml(self):
         """NETWORK Provided XML is used."""

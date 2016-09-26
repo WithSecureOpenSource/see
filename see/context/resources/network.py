@@ -60,6 +60,7 @@ configuration will cause RuntimeError to be raised.
 
 import libvirt
 import ipaddress
+from itertools import count
 import xml.etree.ElementTree as etree
 
 from see.context.resources.helpers import subelement
@@ -75,10 +76,12 @@ def create(hypervisor, identifier, configuration):
     @return: (libvirt.virNetwork) virtual network.
 
     """
+    counter = count()
+
     with open(configuration['configuration']) as xml_file:
         xml_config = xml_file.read()
 
-    for _ in range(MAX_ATTEMPTS):
+    while True:
         if 'dynamic_address' in configuration:
             address = generate_address(hypervisor,
                                        configuration['dynamic_address'])
@@ -88,11 +91,12 @@ def create(hypervisor, identifier, configuration):
 
         try:
             return hypervisor.networkCreateXML(xml_string)
-        except libvirt.libvirtError:  # another Environment took the same IP
-            continue
-    else:
-        raise RuntimeError(
-            "Exceeded attempts ({}) to get IP address.".format(MAX_ATTEMPTS))
+        except libvirt.libvirtError as error:
+            if next(counter) > MAX_ATTEMPTS:
+                raise RuntimeError(
+                    "Exceeded failed attempts ({}) to get IP address.".format(
+                        MAX_ATTEMPTS),
+                    "Last error: {}".format(error))
 
 
 def lookup(domain):
