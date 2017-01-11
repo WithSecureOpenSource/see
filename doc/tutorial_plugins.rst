@@ -5,7 +5,7 @@ In the previous chapter we created a Sandbox with a minimal set of functionaliti
 
 As the number of features grows, so does the complexity of the system. SEE has been designed to contain the development cost providing high flexibility and promoting code re-usability.
 
-As shown previously, the Context allows to subscribe to Events handlers and trigger Events. This is commonly referred as the `Observer <https://en.wikipedia.org/wiki/Observer_pattern>`_ pattern.
+As shown previously, the Context allows to subscribe event handlers and trigger Events. This is commonly referred as the `Observer <https://en.wikipedia.org/wiki/Observer_pattern>`_ pattern.
 
 Rather than adding additional features, let's try to encapsulate the ones we already provided in a re-usable module.
 
@@ -53,7 +53,7 @@ Here follows as an example the VNC Hook. To make it more generic, we allow the U
 The Protocol
 ------------
 
-In the natural sciences a `protocol <https://en.wikipedia.org/wiki/Protocol_%28science%29>`_ is a predefined written procedural method in the design and implementation of experiments. When writing test cases to analyse unknown samples we define a protocol as a sequence of instructions affecting the Context and leading to several Events to be triggered.
+In the natural sciences a `protocol <https://en.wikipedia.org/wiki/Protocol_%28science%29>`_ is a predefined written procedural method in the design and implementation of experiments. When writing test cases to analyse unknown samples, we define a protocol as a sequence of instructions affecting the Context and leading to several Events to be triggered.
 
 With a well defined set of protocols and a collection of independent plugins, we can assemble a vaste amount of test cases without the need of writing any specific code.
 

@@ -42,7 +42,7 @@ Every proper tutorial includes the "Hello World" example, we cannot be outdone.
 
 To better control the execution flow, SEE provides an event-driven architecture allowing to trigger Events and subscribe handlers through the Context object.
 
-In the next code snippet, we print the "Hello Sandbox" string after starting the sandbox. At the same go we open a VNC connection to inspect its execution.
+In the next code snippet, we print the "Hello Sandbox" string after starting the sandbox. At the same time, we open a VNC connection to inspect its execution.
 
 To complete the script, we turn it into a command line tool complete with parameters.
 

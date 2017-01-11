@@ -73,7 +73,7 @@ Then, a JSON file will be used to describe the Context configuration.
 
 The following configuration will instruct SEE to create a virtual machine (a domain) using the above mentioned libvirt configuration file.
 
-The domain will use the disk image we just converted. The `clone` field, instructs SEE to make a clone of the given disk. In this way, the running test will not change or affect the base disk image. The clone will be located in `storage_pool_path` and it will be few Mb in size as `copy_on_write` is enabled.
+The domain will use the disk image we just converted. The `clone` field, instructs SEE to make a clone of the given disk. In this way, the running tests will not change or affect the base disk image. The clone will be located in `storage_pool_path` and it will be few Mb in size as `copy_on_write` is enabled.
 
 Advanced configuration
 ----------------------
