@@ -106,8 +106,11 @@ class CommandsHook(Hook):
 
     def sample_request(self, command, sample, async):
         url = 'http://%s:%d' % (self.host, self.port)
-        files = {'file': open(sample, 'rb')}
-        response = requests.post(url, files=files,
+
+        with open(sample, 'rb') as sample_file:
+            data = sample_file.read()
+
+        response = requests.post(url, data=data,
                                  params={'command': command,
                                          'sample': os.path.basename(sample),
                                          'async': int(async)})
