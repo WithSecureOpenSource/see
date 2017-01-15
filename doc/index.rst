@@ -35,6 +35,7 @@ The environment will comprise a Windows 7 Operating System virtualized using QEM
     tutorial_hellosandbox.rst
     tutorial_plugins.rst
     tutorial_injection.rst
+    tutorial_hellomalware.rst
 
 Documentation
 -------------
