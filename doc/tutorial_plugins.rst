@@ -74,9 +74,11 @@ The protocol will act on the Context which will be observed by the Hooks and the
 
        time.sleep(RUNTIME)
 
+       context.pause()
        context.trigger('snapshots_capture')
+       context.resume()
 
-       context.poweroff()
+       context.shutdown()
 
        context.trigger('start_analysis')
        context.trigger('wait_analysis')
@@ -93,6 +95,30 @@ The protocol will act on the Context which will be observed by the Hooks and the
        raise TimeoutError("Waiting for IP address")
 
 The above example is pretty simple to understand. After powering on the Sandbox, we wait for its IP address to be ready. We then inject the sample and let it run for a given amount of time. We notify the plugins that the VM is about to be shut down letting them capture any necessary information. Once powered off the VM, we proceed analysing the gathered information.
+
+The Event sequence is the following.
+
+  Triggered by the `Context.poweron` method:
+  - pre_poweron
+  - post_poweron
+  Triggered by the `wait_for_ip_address` function once the IP address is available:
+  - ip_address
+  Triggered in order to start start the sample:
+  - run_sample
+  Triggered by the `Context.pause` method:
+  - pre_pause
+  - post_pause
+  Triggered in order to take snapshots of the virtual machine state:
+  - snapshots_capture
+  Triggered by the `Context.resume` methods:
+  - pre_resume
+  - post_resume
+  Triggered by the `Context.shutdown` method:
+  - pre_shutdown
+  - post_shutdown
+  Triggered in order to start analysis plugins:
+  - start_analysis
+  - wait_analysis
 
 -------------
 

@@ -16,15 +16,16 @@ The following Debian packages provide the core virtualization technologies.
   - qemu
   - qemu-tools
   - dnsmasq
-  - python3-libvirt
   - virt-viewer
   - virtinstall
+  - python3-libvirt
 
-These Debian packages are not strictly necessary. They are required in order to run the scanning plugins.
+These Debian packages are not strictly necessary. They are required in the Tutorial's last chapters.
 
-  - python3-guestfs
   - tshark
   - volatility
+  - python3-guestfs
+  - python3-requests
 
 Additional Python packages.
 
