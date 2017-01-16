@@ -70,7 +70,7 @@ Project page.
 
 https://pypi.python.org/pypi/python-see
 
-Project documentation.
+Project tutorial and documentation.
 
 https://pythonhosted.org/python-see
 
