@@ -75,7 +75,4 @@ The following configuration will instruct SEE to create a virtual machine (a dom
 
 The domain will use the disk image we just converted. The `clone` field, instructs SEE to make a clone of the given disk. In this way, the running tests will not change or affect the base disk image. The clone will be located in `storage_pool_path` and it will be few Mb in size as `copy_on_write` is enabled.
 
-Advanced configuration
-----------------------
-
-TODO
+In case we want to run multiple sandboxes concurrently, might be a good idea to isolate their networks. The `documentation <http://pythonhosted.org/python-see/user.html#network>`_ illustrates how to do so.
