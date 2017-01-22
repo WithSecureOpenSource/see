@@ -1,7 +1,7 @@
 Installation
 ============
 
-Please refer to the `installation documentation <http://libvirt.org/docs.html>`_ if problems are encountered.
+Please refer to the `installation documentation <http://pythonhosted.org/python-see/setup.html>`_ if problems are encountered.
 
 Requirements
 ------------
@@ -20,16 +20,16 @@ The following Debian packages provide the core virtualization technologies.
   - virtinstall
   - python3-libvirt
 
-These Debian packages are not strictly necessary. They are required in the Tutorial's last chapters.
+These Debian packages are required in the Tutorial's last chapters.
 
   - tshark
   - volatility
   - python3-guestfs
   - python3-requests
 
-Additional Python packages.
+This Python package is required in the Tutorial's last chapters.
 
-  - vminspect
+  - `vminspect <https://github.com/noxdafox/vminspect>`_
 
 Set up
 ------

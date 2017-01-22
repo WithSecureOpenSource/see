@@ -193,8 +193,8 @@ Here follows the source code and configuration used in the examples.
                "name": "plugins.network.NetworkAnalysisHook",
                "configuration": {
                    "start_processing_on_event": "start_analysis",
-                  "wait_processing_on_event": "wait_analysis",
-                 "log_format": "text"
+                   "wait_processing_on_event": "wait_analysis",
+                   "log_format": "text"
              }
          }
        ]

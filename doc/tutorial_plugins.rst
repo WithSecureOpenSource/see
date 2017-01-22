@@ -124,7 +124,7 @@ The Event sequence is the following.
 
 To conclude the chapter, we show the new script. The sample path, its execution command as well as the Hooks configuration path have been parametrised.
 
-Refer to the `Documetation <http://pythonhosted.org/python-see/user.html#hooks>`_ to see how to configure the Hooks.
+Refer to the `Documetation <http://pythonhosted.org/python-see/user.html#hooks>`_ to configure the Hooks.
 
 ::
 

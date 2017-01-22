@@ -29,19 +29,21 @@ This tutorial will give an introduction on how to setup an example analysis envi
 The environment will comprise a Windows 7 Operating System virtualized using QEMU/KVM on a Debian derived distribution (Debian Stretch).
 
 .. toctree::
+   :maxdepth: 2
 
-    tutorial_installation.rst
-    tutorial_setup.rst
-    tutorial_hellosandbox.rst
-    tutorial_plugins.rst
-    tutorial_injection.rst
-    tutorial_hellomalware.rst
-    tutorial_conclusions.rst
+   tutorial_installation.rst
+   tutorial_setup.rst
+   tutorial_hellosandbox.rst
+   tutorial_plugins.rst
+   tutorial_injection.rst
+   tutorial_hellomalware.rst
+   tutorial_conclusions.rst
 
 Documentation
 -------------
 
 .. toctree::
+   :maxdepth: 2
 
    setup
    user
