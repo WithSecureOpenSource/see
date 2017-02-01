@@ -59,7 +59,7 @@ To complete the script, we turn it into a command line tool complete with parame
 
 
    def hello_sandbox_handler(event):
-       print("Hello Sandbox")
+       print("Hello Sandbox!")
 
 
    def vnc_handler(event):
@@ -102,10 +102,12 @@ To complete the script, we turn it into a command line tool complete with parame
    if __name__ == '__main__':
        main()
 
+The above logic subscribes through the Context the handlers `hello_sandbox_handler` and `vnc_handler` to the `vm_started` Event. The Event is then triggered right after powering on the Context.
 
-Now we can run multiple isolated test cases through our command line script.
+Once launched the script, a VNC session will be automatically opened showing us the guest OS. On the log we should see the "Hello Sandbox!" text.
 
 ::
 
-   ./sandbox.py context.json
-   Hello Sandbox
+   $ ./sandbox.py context.json
+
+   Hello Sandbox!

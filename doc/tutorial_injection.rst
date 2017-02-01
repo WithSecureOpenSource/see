@@ -46,4 +46,4 @@ We can now run the script of the previous chapter as follows.
 
 ::
 
-   ./sandbox.py context.json example.exe --hooks hooks.json --command "start {sample}"
+   $ ./sandbox.py context.json example.exe --hooks hooks.json --command "start {sample}"

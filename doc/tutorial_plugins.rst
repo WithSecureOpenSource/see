@@ -99,24 +99,39 @@ The above example is pretty simple to understand. After powering on the Sandbox,
 The Event sequence is the following.
 
   Triggered by the `Context.poweron` method:
+
   - pre_poweron
   - post_poweron
+
   Triggered by the `wait_for_ip_address` function once the IP address is available:
+
   - ip_address
+
   Triggered in order to start start the sample:
+
   - run_sample
+
   Triggered by the `Context.pause` method:
+
   - pre_pause
   - post_pause
+
   Triggered in order to take snapshots of the virtual machine state:
+
   - snapshots_capture
+
   Triggered by the `Context.resume` methods:
+
   - pre_resume
   - post_resume
+
   Triggered by the `Context.shutdown` method:
+
   - pre_shutdown
   - post_shutdown
+
   Triggered in order to start analysis plugins:
+
   - start_analysis
   - wait_analysis
 
