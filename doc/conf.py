@@ -103,9 +103,10 @@ pygments_style = 'sphinx'
 # a list of builtin themes.
 html_theme = 'alabaster'
 html_theme_options = {
-    'page_width': 'auto',
+    'page_width': '80%',
     'github_user': 'F-Secure',
     'github_repo': 'see',
+    'show_related': True,
     'github_banner': True
 }
 
