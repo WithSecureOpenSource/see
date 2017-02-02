@@ -24,7 +24,10 @@ Configuration::
   },
   "disk":
   {
-     "image": "/var/mystoragepool/image.vdi",
+     "image": {
+        "uri": "/var/mystoragepool/image.vdi",
+        "provider": "see.image_providers.DummyProvider"
+     }
   }
 }
 
@@ -127,7 +130,7 @@ class VBoxResources(resources.Resources):
 
     def allocate(self):
         """Initializes libvirt resources."""
-        disk_path = self.configuration['disk']['image']
+        disk_path = self.provider_image
 
         self._hypervisor = libvirt.open(
             self.configuration.get('hypervisor', 'vbox:///session'))
