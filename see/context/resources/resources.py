@@ -20,6 +20,9 @@ To expand SEE's hypervisor support, the developer must adhere to the following i
 
 import logging
 
+from see.interfaces import ImageProvider
+from see.helpers import lookup_class
+
 
 class Resources(object):
     """Resources Class interface."""
@@ -99,3 +102,29 @@ class Resources(object):
 
         """
         raise NotImplementedError("Deallocate method not implemented.")
+
+    @property
+    def provider_image(self):
+        """Image path getter.
+
+        This method uses a pluggable image provider to retrieve an
+        image's path.
+
+        """
+        if isinstance(self.configuration['disk']['image'], dict):
+            ProviderClass = lookup_provider_class(
+                self.configuration['disk']['image']['provider'])
+            return ProviderClass(self.configuration['disk']['image']).image
+        else:
+            # If image is a string, return it as is for backwards compatibility
+            return self.configuration['disk']['image']
+
+
+def lookup_provider_class(name):
+    ProviderClass = lookup_class(name)
+
+    if not issubclass(ProviderClass, ImageProvider):
+        raise ValueError("%r is not subclass of of %r" %
+                         (ProviderClass, ImageProvider))
+    else:
+        return ProviderClass
