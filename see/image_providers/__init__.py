@@ -13,3 +13,4 @@
 # permissions and limitations under the License.
 
 from see.image_providers.dummy import DummyProvider
+from see.image_providers.libvirt_pool import LibvirtPoolProvider
