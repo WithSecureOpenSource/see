@@ -26,7 +26,9 @@ from see.helpers import lookup_class
 
 class Resources(object):
     """Resources Class interface."""
+
     def __init__(self, identifier, configuration):
+        self._image = None
         self.identifier = identifier
         self.configuration = configuration
         self.logger = logging.getLogger(identifier)
@@ -111,13 +113,17 @@ class Resources(object):
         image's path.
 
         """
-        if isinstance(self.configuration['disk']['image'], dict):
-            ProviderClass = lookup_provider_class(
-                self.configuration['disk']['image']['provider'])
-            return ProviderClass(self.configuration['disk']['image']).image
-        else:
-            # If image is a string, return it as is for backwards compatibility
-            return self.configuration['disk']['image']
+        if self._image is None:
+            if isinstance(self.configuration['disk']['image'], dict):
+                ProviderClass = lookup_provider_class(
+                    self.configuration['disk']['image']['provider'])
+                self._image = ProviderClass(
+                    self.configuration['disk']['image']).image
+            else:
+                # If image is not a dictionary, return it as is for backwards
+                # compatibility
+                self._image = self.configuration['disk']['image']
+        return self._image
 
 
 def lookup_provider_class(name):
