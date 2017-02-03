@@ -95,6 +95,14 @@ from see.context.resources import network
 from see.context.resources import resources
 from see.context.resources.helpers import subelement
 
+BASE_POOL_CONFIG = """
+<pool type='dir'>
+  <name>{0}</name>
+  <target>
+    <path>{1}</path>
+  </target>
+</pool>
+"""
 
 POOL_DEFAULT_CONFIG = """
 <pool type='dir'>
@@ -148,9 +156,9 @@ def domain_xml(identifier, xml, disk_path, network_name=None):
     subelement(disk, './/source', 'source', None, file=disk_path)
 
     if network_name is not None:
-        network = subelement(devices, './/interface[@type="network"]',
-                             'interface', None, type='network')
-        subelement(network, './/source', 'source', None, network=network_name)
+        net = subelement(devices, './/interface[@type="network"]',
+                         'interface', None, type='network')
+        subelement(net, './/source', 'source', None, network=network_name)
 
     return etree.tostring(domain).decode('utf-8')
 
@@ -296,8 +304,16 @@ def disk_clone(hypervisor, identifier, storage_pool, configuration, image):
     try:
         volume = hypervisor.storageVolLookupByPath(image)
     except libvirt.libvirtError:
-        raise RuntimeError(
-            "%s disk must be contained in a libvirt storage pool." % image)
+        if os.path.exists(image):
+            pool = hypervisor.storagePoolDefineXML(BASE_POOL_CONFIG.format(
+                os.path.dirname(image)))
+            pool.setAutostart(True)
+            pool.create()
+            pool.refresh()
+            volume = hypervisor.storageVolLookupByPath(image)
+        else:
+            raise RuntimeError(
+                "%s disk does not exist." % image)
 
     xml = disk_xml(identifier, storage_pool.XMLDesc(0), volume.XMLDesc(0), cow)
 
@@ -354,6 +370,9 @@ class QEMUResources(resources.Resources):
 
         disk_path = self._retrieve_disk_path()
 
+        if self._storage_pool is not None:
+            self._storage_pool.refresh()
+
         self._domain = domain_create(self._hypervisor, self.identifier,
                                      self.configuration['domain'],
                                      disk_path, network_name=network_name)
@@ -383,15 +402,14 @@ class QEMUResources(resources.Resources):
 
     def _retrieve_disk_path(self):
         if 'clone' in self.configuration['disk']:
-            return self._clone_disk(self.configuration['disk']['clone'],
-                                    self.provider_image)
+            return self._clone_disk(self.configuration['disk']['clone'])
         else:
             return self.provider_image
 
-    def _clone_disk(self, configuration, image):
+    def _clone_disk(self, configuration):
         """Clones the disk and returns the path to the new disk."""
         disk_clone(self._hypervisor, self.identifier,
-                   self._storage_pool, configuration, image)
+                   self._storage_pool, configuration, self.provider_image)
         disk_name = self._storage_pool.listVolumes()[0]
 
         return self._storage_pool.storageVolLookupByName(disk_name).path()
