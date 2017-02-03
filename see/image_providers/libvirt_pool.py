@@ -27,6 +27,15 @@ import os
 
 from see.interfaces import ImageProvider
 
+POOL_CONFIG_XML = """
+<pool type='dir'>
+  <name>{0}</name>
+  <target>
+    <path>{0}</path>
+  </target>
+</pool>
+"""
+
 
 class LibvirtPoolProvider(ImageProvider):
 
@@ -48,15 +57,8 @@ class LibvirtPoolProvider(ImageProvider):
             volume = hypervisor.storageVolLookupByPath(path)
             return volume.path()
         except libvirt.libvirtError:
-            pool = hypervisor.storagePoolDefineXML(
-                """
-                <pool type='dir'>
-                  <name>{0}</name>
-                  <target>
-                    <path>{0}</path>
-                  </target>
-                </pool>
-                """.format(self.configuration.get('storage_pool_path')))
+            pool = hypervisor.storagePoolDefineXML(POOL_CONFIG_XML.format(
+                self.configuration.get('storage_pool_path')))
             pool.setAutostart(True)
             pool.create()
             pool.refresh()
