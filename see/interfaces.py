@@ -38,7 +38,7 @@ class Hook(Observer):
         raise NotImplementedError("Not implemented")
 
 
-class ImageProvider:
+class ImageProvider(object):
     """Abstract base class for image provider backends."""
     def __init__(self, parameters):
         super(ImageProvider, self).__init__()
