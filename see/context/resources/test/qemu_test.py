@@ -256,7 +256,7 @@ class DiskCloneTest(unittest.TestCase):
                    """<mode>0644</mode></permissions>""" +\
                    """<format type="qcow2" /></target>""" +\
                    """<capacity>10</capacity></volume>"""
-        qemu.disk_clone(hypervisor, 'foo', pool, {'image': '/foo/bar/baz.qcow2', 'clone': {}})
+        qemu.disk_clone(hypervisor, 'foo', pool, {}, '/foo/bar/baz.qcow2')
         results = pool.createXMLFrom.call_args_list[0][0][0]
         results = results.replace('\n', '').replace('\t', '').replace('  ', '')
         self.assertEqual(results, expected, compare(results, expected))
@@ -275,7 +275,7 @@ class DiskCloneTest(unittest.TestCase):
                    """<format type="qcow2" /></target><capacity>10</capacity>""" +\
                    """<backingStore><path>/path/volume.qcow2</path><format type="qcow2" />""" +\
                    """</backingStore></volume>"""
-        qemu.disk_clone(hypervisor, 'foo', pool, {'image': '/foo/bar/baz.qcow2', 'clone': {'copy_on_write': True}})
+        qemu.disk_clone(hypervisor, 'foo', pool, {'copy_on_write': True}, '/foo/bar/baz.qcow2')
         results = pool.createXML.call_args_list[0][0][0]
         results = results.replace('\n', '').replace('\t', '').replace('  ', '')
         self.assertEqual(results, expected, compare(results, expected))
@@ -286,7 +286,7 @@ class DiskCloneTest(unittest.TestCase):
         hypervisor = mock.Mock()
         hypervisor.storageVolLookupByPath.side_effect = libvirt.libvirtError('BOOM')
         with self.assertRaises(RuntimeError) as error:
-            qemu.disk_clone(hypervisor, 'foo', pool, {'image': '/foo/bar/baz.qcow2', 'clone': {}})
+            qemu.disk_clone(hypervisor, 'foo', pool, {}, '/foo/bar/baz.qcow2')
             self.assertEqual(str(error), "/foo/bar/baz.qcow2 disk must be contained in a libvirt storage pool.")
 
 
@@ -339,8 +339,8 @@ class ResourcesTest(unittest.TestCase):
         resources.allocate()
         pool_mock.assert_called_with(resources.hypervisor, 'foo', '/baz')
         disk_mock.assert_called_with(resources.hypervisor, 'foo', pool,
-                                     {'image': '/foo/bar.qcow2',
-                                      'clone': {'storage_pool_path': '/baz'}})
+                                     {'storage_pool_path': '/baz'},
+                                     '/foo/bar.qcow2')
         create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar',
                                        '/foo/bar', network_name=None)
 
