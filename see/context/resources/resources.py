@@ -130,7 +130,7 @@ def lookup_provider_class(name):
     ProviderClass = lookup_class(name)
 
     if not issubclass(ProviderClass, ImageProvider):
-        raise ValueError("%r is not subclass of of %r" %
+        raise TypeError("%r is not subclass of of %r" %
                          (ProviderClass, ImageProvider))
     else:
         return ProviderClass
