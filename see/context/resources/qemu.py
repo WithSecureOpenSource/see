@@ -99,7 +99,7 @@ BASE_POOL_CONFIG = """
 <pool type='dir'>
   <name>{0}</name>
   <target>
-    <path>{1}</path>
+    <path>{0}</path>
   </target>
 </pool>
 """
