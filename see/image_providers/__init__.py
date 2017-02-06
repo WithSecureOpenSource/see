@@ -14,3 +14,4 @@
 
 from see.image_providers.dummy import DummyProvider
 from see.image_providers.libvirt_pool import LibvirtPoolProvider
+from see.image_providers.os_glance import GlanceProvider
