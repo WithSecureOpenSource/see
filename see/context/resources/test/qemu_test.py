@@ -295,10 +295,23 @@ class ResourcesTest(unittest.TestCase):
     @mock.patch('see.context.resources.qemu.libvirt')
     @mock.patch('see.context.resources.qemu.domain_create')
     def test_allocate_default(self, create_mock, libvirt_mock, network_mock):
-        """QEMU Resources allocator with no extra value."""
+        """QEMU Resources allocator with no extra value and old style image definition."""
         network_mock.lookup.return_value = None
         resources = qemu.QEMUResources('foo', {'domain': 'bar',
                                                'disk': {'image': '/foo/bar'}})
+        resources.allocate()
+        libvirt_mock.open.assert_called_with('qemu:///system')
+        create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar',
+                                       '/foo/bar', network_name=None)
+
+    @mock.patch('see.context.resources.qemu.libvirt')
+    @mock.patch('see.context.resources.qemu.domain_create')
+    def test_allocate_dummy_provider(self, create_mock, libvirt_mock, network_mock):
+        """QEMU Resources allocator with no extra value and dummy image provider."""
+        network_mock.lookup.return_value = None
+        resources = qemu.QEMUResources('foo', {'domain': 'bar',
+                                               'disk': {'image': {'uri': '/foo/bar',
+                                                                  'provider': 'see.image_providers.DummyProvider'}}})
         resources.allocate()
         libvirt_mock.open.assert_called_with('qemu:///system')
         create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar',
