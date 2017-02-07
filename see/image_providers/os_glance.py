@@ -32,6 +32,11 @@ import os
 from datetime import datetime
 from see.interfaces import ImageProvider
 
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
+
 
 class GlanceProvider(ImageProvider):
 
@@ -45,7 +50,7 @@ class GlanceProvider(ImageProvider):
         metadata = self._image_metadata()
         if (os.path.exists(self.configuration['target_path']) and
                 os.path.isfile(self.configuration['target_path'])):
-            img_time = (datetime.strptime(metadata.get('updated_at'),
+            img_time = (datetime.strptime(metadata.updated_at,
                                           "%Y-%m-%dT%H:%M:%SZ") -
                         datetime(1970, 1, 1)).total_seconds()
 
@@ -54,7 +59,7 @@ class GlanceProvider(ImageProvider):
 
         self._download_from_glance(metadata)
         return ('/'.join((self.configuration['target_path'].rstrip('/'),
-                          metadata.get('id')))
+                          metadata.id))
                 if os.path.isdir(self.configuration['target_path'])
                 else self.configuration['target_path'])
 
@@ -79,12 +84,15 @@ class GlanceProvider(ImageProvider):
         return self._glance_client
 
     def _image_metadata(self):
-        return sorted([image for image in self.glance_client.images.list() if
-                       image.id == self.uri or image.name == self.uri],
-                      cmp=lambda x, y: x.updated_at > y.updated_at)[0]
+        try:
+            return sorted([image for image in self.glance_client.images.list()
+                           if image.id == self.uri or image.name == self.uri],
+                          key=lambda x: x.updated_at, reverse=True)[0]
+        except IndexError:
+            raise FileNotFoundError(self.uri)
 
     def _download_from_glance(self, img_metadata):
-        img_downloader = self.glance_client.images.data(img_metadata.get('id'))
+        img_downloader = self.glance_client.images.data(img_metadata.id)
         with open(self.configuration['target_path'], 'wb') as imagefile:
             for chunk in img_downloader:
                 imagefile.write(chunk)
