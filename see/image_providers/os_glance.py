@@ -31,8 +31,6 @@ import os
 
 from datetime import datetime
 from see.interfaces import ImageProvider
-from keystoneclient.client import Client as Kclient
-from glanceclient.v2.client import Client as Gclient
 
 
 class GlanceProvider(ImageProvider):
@@ -68,12 +66,14 @@ class GlanceProvider(ImageProvider):
     @property
     def keystone_client(self):
         if self._keystone_client is None:
+            from keystoneclient.client import Client as Kclient
             self._keystone_client = Kclient(self.configuration['os_auth'])
         return self._keystone_client
 
     @property
     def glance_client(self):
         if self._glance_client is None:
+            from glanceclient.v2.client import Client as Gclient
             self._glance_client = Gclient(
                 self.configuration['glance_url'], token=self._token)
         return self._glance_client
