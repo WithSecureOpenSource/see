@@ -27,6 +27,11 @@ import os
 
 from see.interfaces import ImageProvider
 
+try:
+    FileNotFoundError
+except NameError:
+    FileNotFoundError = IOError
+
 POOL_CONFIG_XML = """
 <pool type='dir'>
   <name>{0}</name>
