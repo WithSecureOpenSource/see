@@ -50,7 +50,7 @@ class GlanceProvider(ImageProvider):
         metadata = self._image_metadata()
         if (os.path.exists(self.configuration['target_path']) and
                 os.path.isfile(self.configuration['target_path'])):
-            if (datetime.strptime(metadata.updated_at, "%Y-%m-%dT%H:%M:%SZ") >
+            if (datetime.strptime(metadata.updated_at, "%Y-%m-%dT%H:%M:%SZ") <
                     datetime.fromtimestamp(os.path.getmtime(
                         self.configuration['target_path']))):
                 return self.configuration['target_path']
