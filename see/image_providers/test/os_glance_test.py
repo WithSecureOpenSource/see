@@ -78,6 +78,7 @@ class ImageTest(unittest.TestCase):
 
         assert resources.provider_image == expected_image_path
         glance_mock.images.data.assert_called_with('1')
+        open_mock.assert_called_with(expected_image_path, 'wb')
 
     @mock.patch('__builtin__.open')
     def test_newer_image_exists(self, open_mock, os_mock, keystone_mock, glance_mock):
@@ -100,3 +101,4 @@ class ImageTest(unittest.TestCase):
 
         assert resources.provider_image == expected_image_path
         glance_mock.images.data.assert_called_with('2')
+        open_mock.assert_called_with(expected_image_path, 'wb')
