@@ -47,19 +47,20 @@ class GlanceProvider(ImageProvider):
 
     @property
     def image(self):
-        metadata = self._image_metadata()
+        metadata = self._retrieve_metadata()
         if (os.path.exists(self.configuration['target_path']) and
-                os.path.isfile(self.configuration['target_path'])):
-            if (datetime.strptime(metadata.updated_at, "%Y-%m-%dT%H:%M:%SZ") <
-                    datetime.fromtimestamp(os.path.getmtime(
-                        self.configuration['target_path']))):
-                return self.configuration['target_path']
+            os.path.isfile(self.configuration['target_path']) and
+            datetime.fromtimestamp(os.path.getmtime(
+                self.configuration['target_path'])) >
+                datetime.strptime(metadata.updated_at, "%Y-%m-%dT%H:%M:%SZ")):
+            return self.configuration['target_path']
 
-        self._download_from_glance(metadata)
-        return ('/'.join((self.configuration['target_path'].rstrip('/'),
-                          metadata.id))
-                if os.path.isdir(self.configuration['target_path'])
-                else self.configuration['target_path'])
+        target = ('/'.join((self.configuration['target_path'].rstrip('/'),
+                            metadata.id))
+                  if os.path.isdir(self.configuration['target_path'])
+                  else self.configuration['target_path'])
+        self._download_image(metadata, target)
+        return target
 
     @property
     def _token(self):
@@ -81,7 +82,7 @@ class GlanceProvider(ImageProvider):
                 self.configuration['glance_url'], token=self._token)
         return self._glance_client
 
-    def _image_metadata(self):
+    def _retrieve_metadata(self):
         try:
             return sorted([image for image in self.glance_client.images.list()
                            if image.id == self.uri or image.name == self.uri],
@@ -89,8 +90,8 @@ class GlanceProvider(ImageProvider):
         except IndexError:
             raise FileNotFoundError(self.uri)
 
-    def _download_from_glance(self, img_metadata):
+    def _download_image(self, img_metadata, target):
         img_downloader = self.glance_client.images.data(img_metadata.id)
-        with open(self.configuration['target_path'], 'wb') as imagefile:
+        with open(target, 'wb') as imagefile:
             for chunk in img_downloader:
                 imagefile.write(chunk)
