@@ -9,9 +9,9 @@ except NameError:
     FileNotFoundError = IOError
 
 
-@mock.patch('see.image_providers.GlanceProvider.glance_client')
 @mock.patch('see.image_providers.GlanceProvider.keystone_client')
 @mock.patch('see.image_providers.os_glance.os')
+@mock.patch('see.image_providers.GlanceProvider.glance_client')
 class ImageTest(unittest.TestCase):
 
     def setUp(self):
@@ -32,7 +32,7 @@ class ImageTest(unittest.TestCase):
             }
         }
 
-    def test_fresh_image_exists(self, os_mock, keystone_mock, glance_mock):
+    def test_fresh_image_exists(self, glance_mock, os_mock, _):
         image = mock.MagicMock()
         image.id = '1'
         image.name = 'TestImageName'
@@ -49,7 +49,7 @@ class ImageTest(unittest.TestCase):
         assert resources.provider_image == expected_image_path
         glance_mock.images.data.assert_not_called()
 
-    def test_image_does_not_exist(self, os_mock, keystone_mock, glance_mock):
+    def test_image_does_not_exist(self, glance_mock, *_):
         image = mock.MagicMock()
         image.id = '1'
         image.name = 'NonRequestedTestImageName'
@@ -62,7 +62,7 @@ class ImageTest(unittest.TestCase):
 
     @mock.patch('__builtin__.open', new_callable=mock.mock_open)
     @mock.patch('see.image_providers.os_glance.hashlib')
-    def test_stale_image_exists(self, hashlib_mock, open_mock, os_mock, keystone_mock, glance_mock):
+    def test_stale_image_exists(self, hashlib_mock, open_mock, glance_mock, os_mock, _):
         image = mock.MagicMock()
         image.id = '1'
         image.checksum = '1111'
@@ -91,7 +91,7 @@ class ImageTest(unittest.TestCase):
 
     @mock.patch('__builtin__.open', new_callable=mock.mock_open)
     @mock.patch('see.image_providers.os_glance.hashlib')
-    def test_same_name_images_exist(self, hashlib_mock, open_mock, os_mock, keystone_mock, glance_mock):
+    def test_same_name_images_exist(self, hashlib_mock, open_mock, glance_mock, os_mock, _):
         image1 = mock.MagicMock()
         image1.id = '1'
         image1.checksum = '1111'
@@ -124,7 +124,7 @@ class ImageTest(unittest.TestCase):
 
     @mock.patch('__builtin__.open', new_callable=mock.mock_open)
     @mock.patch('see.image_providers.os_glance.hashlib')
-    def test_checksum_mismatch(self, hashlib_mock, open_mock, os_mock, keystone_mock, glance_mock):
+    def test_checksum_mismatch(self, hashlib_mock, open_mock, glance_mock, os_mock, _):
         image = mock.MagicMock()
         image.id = '1'
         image.checksum = '1111'

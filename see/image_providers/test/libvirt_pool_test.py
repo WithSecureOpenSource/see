@@ -10,6 +10,7 @@ try:
 except NameError:
     FileNotFoundError = IOError
 
+
 @mock.patch.object(libvirt_pool.libvirt, 'open')
 @mock.patch('see.image_providers.libvirt_pool.os.path')
 class ImageTest(unittest.TestCase):
@@ -28,7 +29,7 @@ class ImageTest(unittest.TestCase):
             }
         }
 
-    def test_nonexistent_image(self, os_mock, libvirt_mock):
+    def test_nonexistent_image(self, os_mock, _):
         os_mock.exists.return_value = False
         resources = Resources('foo', self.config)
 
