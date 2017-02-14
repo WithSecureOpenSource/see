@@ -28,6 +28,7 @@ provider_parameters:
 """
 
 import os
+import hashlib
 
 from datetime import datetime
 from see.interfaces import ImageProvider
@@ -36,6 +37,14 @@ try:
     FileNotFoundError
 except NameError:
     FileNotFoundError = IOError
+
+
+def verify_checksum(path, checksum):
+    hash_md5 = hashlib.md5()
+    with open(path, 'rb') as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest() == checksum
 
 
 class GlanceProvider(ImageProvider):
@@ -95,3 +104,6 @@ class GlanceProvider(ImageProvider):
         with open(target, 'wb') as imagefile:
             for chunk in img_downloader:
                 imagefile.write(chunk)
+        if not verify_checksum(target, img_metadata.checksum):
+            os.remove(target)
+            raise RuntimeError('Checksum failure. File: %s' % target)
