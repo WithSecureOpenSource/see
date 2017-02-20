@@ -40,7 +40,7 @@ Image providers
 
 SEE uses a system of pluggable providers to retrieve disk images from arbitrary sources and make them available to SEE.
 
-SEE bundles providers for LibVirt storage pools and OpenStack Glance as well as a dummy provider implementation, to add more providers see the code contained in see/image_providers.
+SEE bundles providers for `LibVirt storage pools <https://libvirt.org/storage.html>`_ and `OpenStack Glance <https://docs.openstack.org/developer/glance/>`_ as well as a dummy provider implementation, to add more providers see the code contained in see/image_providers.
 
 Principles
 ----------
@@ -51,10 +51,10 @@ SEE is an event-driven, plugin-based sandbox provider for synchronous and asynch
 
 
                                                                       +----------+
-                  +-----------------+                                 |          |
-                  | Image Provider  |                         +-------| SEE Hook |
-                  +---------+-------+                         |       |          |
-                            |                                 |       +----------+
+                                                                      |          |
+                                                              +-------| SEE Hook |
+                                                              |       |          |
+                                                              |       +----------+
                   +---------+-------+       +---------+       |       +----------+
                   |                 |       |         |       |       |          |
     User -------> | SEE Environment |-------| Sandbox |-------+-------| SEE Hook |
