@@ -238,7 +238,7 @@ In the following example, SEE will generate a subnetwork within the network 192.
 Image Providers
 +++++++++++++++
 
-SEE `image_providers` defines a simple common interface to interact with backend disk image providers. Their configuration may vary depending on the chosen provider and backend, however the `image` configuration section must hold a dictionary with the following structure, common to all providers:
+SEE `image_providers` define a simple common interface to interact with backend disk image providers. Their configuration may vary depending on the chosen provider and backend, however the `image` configuration section must hold a dictionary with the following structure, common to all providers:
 
 ::
 
@@ -332,6 +332,7 @@ The Glance provider is provided by the module contained in:
    see/image_providers/os_glance.py
 
 This provider retrieves the requested image from a glance service and stores it locally at a configured location. The `uri` section refers to an image name or id within the glance service.
+The Glance provider will ensure that the image file at the returned path is at its newest available version, returning the freshest possible image from those matching the requested `uri`; if the local image is already fresh it will not be downloaded again.
 
 The Following JSON snippet shows an example of a GlanceProvider configuration.
 

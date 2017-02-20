@@ -217,7 +217,7 @@ Here follows the source code and configuration used in the examples.
            {
                "uri": "/home/username/images/IE8_-_Win7-disk1.qcow2",
                "provider": "see.image_providers.DummyProvider"
-           }
+           },
            "clone":
            {
                "storage_pool_path": "/home/username/instances",
