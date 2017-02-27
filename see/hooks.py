@@ -13,11 +13,11 @@
 # permissions and limitations under the License.
 
 import logging
-import inspect
 
 from collections import namedtuple
 
 from see.interfaces import Hook
+from see.helpers import lookup_class
 
 
 HookParameters = namedtuple('HookParameters', ('identifier',
@@ -93,19 +93,3 @@ def lookup_hook_class(name):
         raise ValueError("%r is not subclass of of %r" % (HookClass, Hook))
     else:
         return HookClass
-
-
-def lookup_class(fully_qualified_name):
-    """
-    Given its fully qualified name, finds the desired class and imports it.
-    Returns the Class object if found.
-    """
-    module_name, class_name = str(fully_qualified_name).rsplit(".", 1)
-    module = __import__(module_name, globals(), locals(), [class_name], 0)
-    Class = getattr(module, class_name)
-
-    if not inspect.isclass(Class):
-        raise ValueError(
-            "%s is not of type class: %s" % (class_name, type(Class)))
-
-    return Class

@@ -36,3 +36,17 @@ class Hook(Observer):
 
     def cleanup(self):
         raise NotImplementedError("Not implemented")
+
+
+class ImageProvider(object):
+    """Abstract base class for image provider backends."""
+    def __init__(self, parameters):
+        super(ImageProvider, self).__init__()
+        self.configuration = parameters.get('provider_configuration')
+        self.uri = parameters.get('uri')
+        self.logger = logging.getLogger(
+            '%s.%s' % (self.__module__, self.__class__.__name__))
+
+    @property
+    def image(self):
+        raise NotImplementedError("Not implemented")

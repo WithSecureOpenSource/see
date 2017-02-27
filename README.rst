@@ -24,7 +24,7 @@ Installation
 
 SEE is available as Python package on the Python Package Index (PyPI).
 
-It's user's responsibility to install and setup the hypervisors intended to be controlled with SEE.
+It's user's responsibility to install and setup the hypervisors intended to be controlled with SEE and the possible dependencies and subsystems used by the selected image providers.
 
 Please refer to the documentation to see how to setup and configure each hypervisor.
 
@@ -34,6 +34,13 @@ Supported hypervisors
 SEE is build on top of libvirt's APIs, therefore all hypervisors supported by libvirt can be controlled through SEE.
 
 SEE comes with a basic support for QEMU, VirtualBox and LXC, to add more hypervisor or customize the basic ones see the code contained in see/context.
+
+Image providers
+---------------
+
+SEE uses a system of pluggable providers to retrieve disk images from arbitrary sources and make them available to SEE.
+
+SEE bundles providers for `LibVirt storage pools <https://libvirt.org/storage.html>`_ and `OpenStack Glance <https://docs.openstack.org/developer/glance/>`_ as well as a dummy provider implementation, to add more providers see the code contained in see/image_providers.
 
 Principles
 ----------
@@ -48,7 +55,7 @@ SEE is an event-driven, plugin-based sandbox provider for synchronous and asynch
                                                               +-------| SEE Hook |
                                                               |       |          |
                                                               |       +----------+
-                  +-----------------+       +---------+       |       +----------+
+                  +---------+-------+       +---------+       |       +----------+
                   |                 |       |         |       |       |          |
     User -------> | SEE Environment |-------| Sandbox |-------+-------| SEE Hook |
                   |                 |       |         |       |       |          |

@@ -49,7 +49,7 @@ The example shows a configuration section including two Hooks - Hook1 and Hook2 
 Resources
 +++++++++
 
-SEE `resources` describes the layout of the sandboxes and their capabilities. Their configuration may vary according to the sandboxing technology which has been chosen. SEE includes a minimal support for QEMU/KVM, Virtualbox and Linux Containers but allows Developers to expand it though a simple interface.
+SEE `resources` describes the layout of the sandboxes and their capabilities. Their configuration may vary according to the sandboxing technology which has been chosen. SEE includes a minimal support for QEMU/KVM, Virtualbox and Linux Containers but allows Developers to expand it through a simple interface.
 
 The `resources` configuration syntax is virtualization provider specific and its details can be found within the modules implementation under:
 
@@ -147,7 +147,11 @@ The following JSON snippet shows an example of a QEMU configuration.
       },
       "disk":
       {
-          "image": "/var/mystoragepool/image.qcow2",
+          "image":
+          {
+            "uri": "/home/username/images/IE8_-_Win7-disk1.qcow2",
+            "provider": "see.image_providers.DummyProvider"
+          },
           "clone":
           {
               "storage_pool_path": "/var/data/pools",
@@ -230,3 +234,137 @@ The following JSON snippet shows an example of a network configuration with dyna
   }
 
 In the following example, SEE will generate a subnetwork within the network 192.168.0.0/16. The subnetwork will have the address 192.168.X.0/24 where X is a random number in the range 0-255. The DHCP server will assign addresses to the sandbox in the range 192.168.X.[0-255].
+
+Image Providers
++++++++++++++++
+
+SEE `image_providers` define a simple common interface to interact with backend disk image providers. Their configuration may vary depending on the chosen provider and backend, however the `image` configuration section must hold a dictionary with the following structure, common to all providers:
+
+::
+
+  {
+      "image":
+      {
+          "uri": "ImageURI",
+          "provider": "fully.qualified.class.name",
+          "provider_configuration": {}
+      }
+  }
+
+The sections within the `image` dictionary have the following meanings:
+
+- **uri**: A string representing an identifier or resource locator for the image within the provider's backend.
+- **provider**: The python fully qualified class name of the provider class to use.
+- **provider_configuration**: A dictionary representing the image provider configuration. This is provider specific and varies depending on the image provider.
+
+The `image` section can be a string for backwards compatibility, in which case no provider is used and an image file is expected to be found at the specified path. SEE makes no guarantee about this image being usable and it is up to the user to ensure that it is.
+
+SEE includes a dummy image provider as well as providers for LibVirt Storage Pools and OpenStack Glance. Image providers are pluggable and can be extended through the `ImageProvider` interface.
+
+The `provider_configuration` object is provider specific and its details can be found within the providers' implementation under:
+
+::
+
+  see/image_providers
+
+Dummy Provider
+^^^^^^^^^^^^^^
+
+The Dummy provider is provided by the module contained in:
+
+::
+
+   see/image_providers/dummy.py
+
+This provider has no internal logic and returns the image `uri` as is, it takes no provider configuration parameters and behaves in the same way as the deprecated `image` string.
+
+The following JSON snippet shows an example of a DummyProvider configuration.
+
+::
+
+  {
+    "image":
+    {
+      "uri": "/home/username/images/IE8_-_Win7-disk1.qcow2",
+      "provider": "see.image_providers.DummyProvider",
+      "provider_configuration": {}
+    }
+  }
+
+
+LibVirt Pool Provider
+^^^^^^^^^^^^^^^^^^^^^
+
+The Libvirt pool provider is provided by the module contained in:
+
+::
+
+   see/image_providers/libvirt_pool.py
+
+This provider retrieves the absolute path to an image within a libvirt storage pool. The `uri` section represents a path to the image relative to the provider's configured storage pool.
+
+The Following JSON snippet shows an example of a LibvirtPoolProvider configuration.
+
+::
+
+  {
+    "image":
+    {
+      "uri": "IE8_-_Win7-disk1.qcow2",
+      "provider": "see.image_providers.LibvirtPoolProvider",
+      "provider_configuration":
+      {
+        "hypervisor": "qemu:///system",
+        "storage_pool_path": "/home/username/images/"
+      }
+    }
+  }
+
+A LibvirtPoolProvider with the previous configuration will ensure that the `hypervisor` has an active and fresh storage pool at `storage_pool_path`. The image file referenced by `uri` is expected to exist beforehand at `storage_pool_path` and the provider will fail otherwise.
+
+Glance Provider
+^^^^^^^^^^^^^^^
+
+The Glance provider is provided by the module contained in:
+
+::
+
+   see/image_providers/os_glance.py
+
+This provider retrieves the requested image from a glance service and stores it locally at a configured location. The `uri` section refers to an image name or id within the glance service.
+The Glance provider will ensure that the image file at the returned path is at its newest available version, returning the freshest possible image from those matching the requested `uri`; if the local image is already fresh it will not be downloaded again.
+
+The Following JSON snippet shows an example of a GlanceProvider configuration.
+
+::
+
+  {
+    "image":
+    {
+      "uri": "IE8_-_Win7-disk1",
+      "provider": "see.image_providers.GlanceProvider"
+      "provider_configuration":
+      {
+        "target_path": "/home/username/images/",
+        "glance_url": "http://my.glance.service:9292"
+        "os_auth":
+        {
+          "auth_url": "http://my.keystone.service:5000/v2.0/",
+          "username": "user",
+          "password": "pass",
+          "project_name": "MyOpenStackTenant"
+        }
+      }
+    }
+  }
+
+The `provider_configuration` sections are as follows:
+
+- **target_path**: A string representing the absolute local path to download the image to.
+
+  The path can be a directory or a file. If it is a directory the image will be downloaded and stored with its glance ID as filename. If the path is a file the image will be downloaded from Glance if the local file doesn't exist or is older than the glance image.
+- **glance_url**: A string representing the URL of the backend glance service.
+- **os_auth**: A dictionary containing pertinent keys for OpenStack authentication parameters as understood by `keystoneclient`, for details on these parameters, see:
+
+  - http://docs.openstack.org/developer/python-keystoneclient/api/keystoneclient.v3.html#module-keystoneclient.v3.client
+  - http://docs.openstack.org/developer/python-keystoneclient/api/keystoneclient.v2_0.html#module-keystoneclient.v2_0.client

@@ -32,6 +32,15 @@ The Resources interfaces expose an allocation and de-allocation method and accep
 
 The SEE Context and its Factories employ the Resources interface to abstract the `libvirt` API.
 
+The ImageProvider Interface
+---------------------------
+
+The ImageProvider interface facilitates a system of plugins to retrieve disk images from arbitrary sources.
+
+The Developer can implement the ImageProvider class to encapsulate his/her own disk image provider.
+
+The ImageProvider interface exposes a single `image` property. This property is expected to be a string representing an absolute path to the image file, locally available to the Context. The class implementing this interface is expected to hold the logic to retrieve the disk image and store it locally in the path returned by the image property.
+
 The Environment Class
 ---------------------
 

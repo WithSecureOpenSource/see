@@ -25,7 +25,14 @@ Configuration::
   },
   "disk":
   {
-    "image": "/var/mystoragepool/image.qcow2",
+    "image":
+    {
+      "uri": "image.qcow2",
+      "provider": "see.image_providers.LibvirtPoolProvider",
+      "provider_configuration": {
+        "storage_pool_path": "/var/mystoragepool"
+      }
+    }
     "clone":
     {
       "storage_pool_path": "/var/data/pools",
@@ -88,6 +95,14 @@ from see.context.resources import network
 from see.context.resources import resources
 from see.context.resources.helpers import subelement
 
+BASE_POOL_CONFIG = """
+<pool type='dir'>
+  <name>{0}</name>
+  <target>
+    <path>{0}</path>
+  </target>
+</pool>
+"""
 
 POOL_DEFAULT_CONFIG = """
 <pool type='dir'>
@@ -141,9 +156,9 @@ def domain_xml(identifier, xml, disk_path, network_name=None):
     subelement(disk, './/source', 'source', None, file=disk_path)
 
     if network_name is not None:
-        network = subelement(devices, './/interface[@type="network"]',
-                             'interface', None, type='network')
-        subelement(network, './/source', 'source', None, network=network_name)
+        net = subelement(devices, './/interface[@type="network"]',
+                         'interface', None, type='network')
+        subelement(net, './/source', 'source', None, network=network_name)
 
     return etree.tostring(domain).decode('utf-8')
 
@@ -184,7 +199,8 @@ def domain_create(hypervisor, identifier, configuration, disk_path, network_name
     with open(configuration['configuration']) as config_file:
         domain_config = config_file.read()
 
-    xml = domain_xml(identifier, domain_config, disk_path, network_name=network_name)
+    xml = domain_xml(identifier, domain_config,
+                     disk_path, network_name=network_name)
 
     return hypervisor.defineXML(xml)
 
@@ -264,12 +280,13 @@ def volumes_delete(storage_pool, logger):
                 vol = storage_pool.storageVolLookupByName(vol_name)
                 vol.delete(0)
             except libvirt.libvirtError:
-                logger.exception("Unable to delete storage volume %s.", vol_name)
+                logger.exception(
+                    "Unable to delete storage volume %s.", vol_name)
     except libvirt.libvirtError:
         logger.exception("Unable to delete storage volumes.")
 
 
-def disk_clone(hypervisor, identifier, storage_pool, configuration):
+def disk_clone(hypervisor, identifier, storage_pool, configuration, image):
     """Disk image cloning.
 
     Given an original disk image it clones it into a new one, the clone will be created within the storage pool.
@@ -282,13 +299,21 @@ def disk_clone(hypervisor, identifier, storage_pool, configuration):
       * backingStore/path if copy on write is enabled
 
     """
-    path = configuration['image']
-    cow = configuration['clone'].get('copy_on_write', False)
+    cow = configuration.get('copy_on_write', False)
 
     try:
-        volume = hypervisor.storageVolLookupByPath(path)
+        volume = hypervisor.storageVolLookupByPath(image)
     except libvirt.libvirtError:
-        raise RuntimeError("%s disk must be contained in a libvirt storage pool." % path)
+        if os.path.exists(image):
+            pool = hypervisor.storagePoolDefineXML(BASE_POOL_CONFIG.format(
+                os.path.dirname(image)))
+            pool.setAutostart(True)
+            pool.create()
+            pool.refresh()
+            volume = hypervisor.storageVolLookupByPath(image)
+        else:
+            raise RuntimeError(
+                "%s disk does not exist." % image)
 
     xml = disk_xml(identifier, storage_pool.XMLDesc(0), volume.XMLDesc(0), cow)
 
@@ -305,6 +330,7 @@ class QEMUResources(resources.Resources):
     exposing a clean way to initialize and clean them up.
 
     """
+
     def __init__(self, identifier, configuration):
         super(QEMUResources, self).__init__(identifier, configuration)
         self._hypervisor = None
@@ -344,6 +370,9 @@ class QEMUResources(resources.Resources):
 
         disk_path = self._retrieve_disk_path()
 
+        if self._storage_pool is not None:
+            self._storage_pool.refresh()
+
         self._domain = domain_create(self._hypervisor, self.identifier,
                                      self.configuration['domain'],
                                      disk_path, network_name=network_name)
@@ -369,18 +398,18 @@ class QEMUResources(resources.Resources):
                 self.configuration['disk']['clone']['storage_pool_path'])
         else:
             return pool_lookup(self._hypervisor,
-                               self.configuration['disk']['image'])
+                               self.provider_image)
 
     def _retrieve_disk_path(self):
         if 'clone' in self.configuration['disk']:
-            return self._clone_disk(self.configuration['disk'])
+            return self._clone_disk(self.configuration['disk']['clone'])
         else:
-            return self.configuration['disk']['image']
+            return self.provider_image
 
     def _clone_disk(self, configuration):
         """Clones the disk and returns the path to the new disk."""
         disk_clone(self._hypervisor, self.identifier,
-                   self._storage_pool, configuration)
+                   self._storage_pool, configuration, self.provider_image)
         disk_name = self._storage_pool.listVolumes()[0]
 
         return self._storage_pool.storageVolLookupByName(disk_name).path()
