@@ -263,6 +263,8 @@ SEE includes a dummy image provider as well as providers for LibVirt Storage Poo
 
 The `provider_configuration` object is provider specific and its details can be found within the providers' implementation under:
 
+**Note:** Image providers do not perform any kind of image cleanup tasks. It is up to the client to make sure that any unused images available locally are cleaned up when no longer needed.
+
 ::
 
   see/image_providers
