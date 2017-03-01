@@ -1,4 +1,5 @@
 import os
+import sys
 import mock
 import unittest
 
@@ -14,6 +15,11 @@ except NameError:
 @mock.patch('see.image_providers.os_glance.os')
 @mock.patch('see.image_providers.GlanceProvider.glance_client')
 class ImageTest(unittest.TestCase):
+
+    if sys.version_info.major >= 3:
+        builtin_module = 'builtins'
+    else:
+        builtin_module = '__builtin__'
 
     def setUp(self):
         self.config = {
@@ -113,7 +119,7 @@ class ImageTest(unittest.TestCase):
             _ = resources.provider_image
 
     @mock.patch('see.image_providers.os_glance.tempfile')
-    @mock.patch('__builtin__.open', new_callable=mock.mock_open)
+    @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
     @mock.patch('see.image_providers.os_glance.hashlib')
     def test_stale_image_exists(self, hashlib_mock, open_mock, temp_mock, glance_mock, os_mock, _):
         glance_mock.images.list.return_value = [self.image1]
@@ -139,7 +145,7 @@ class ImageTest(unittest.TestCase):
         os_mock.remove.assert_not_called()
 
     @mock.patch('see.image_providers.os_glance.tempfile')
-    @mock.patch('__builtin__.open', new_callable=mock.mock_open)
+    @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
     @mock.patch('see.image_providers.os_glance.hashlib')
     def test_same_name_images_exist(self, hashlib_mock, open_mock, temp_mock, glance_mock, os_mock, _):
         glance_mock.images.list.return_value = [self.image1, self.image2]
@@ -164,7 +170,7 @@ class ImageTest(unittest.TestCase):
         os_mock.remove.assert_not_called()
 
     @mock.patch('see.image_providers.os_glance.tempfile')
-    @mock.patch('__builtin__.open', new_callable=mock.mock_open)
+    @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
     @mock.patch('see.image_providers.os_glance.hashlib')
     def test_checksum_mismatch(self, hashlib_mock, open_mock, temp_mock, glance_mock, os_mock, _):
         glance_mock.images.list.return_value = [self.image1]
