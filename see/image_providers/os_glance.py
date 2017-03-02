@@ -43,7 +43,10 @@ except NameError:
 def verify_checksum(path, checksum):
     hash_md5 = hashlib.md5()
     with open(path, 'rb') as f:
-        for chunk in iter(lambda: f.read(4096), b""):
+        while True:
+            chunk = f.read(4096)
+            if not chunk:
+                break
             hash_md5.update(chunk)
     return hash_md5.hexdigest() == checksum
 
