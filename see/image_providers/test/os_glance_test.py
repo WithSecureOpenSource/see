@@ -15,7 +15,6 @@ except NameError:
 @mock.patch('see.image_providers.os_glance.os')
 @mock.patch('see.image_providers.GlanceProvider.glance_client')
 class ImageTest(unittest.TestCase):
-
     if sys.version_info.major >= 3:
         builtin_module = 'builtins'
     else:
@@ -114,6 +113,7 @@ class ImageTest(unittest.TestCase):
                                                      '/foo/bar': True}[x]
         os_mock.path.isfile.return_value = False
         os_mock.path.join = os.path.join
+
         resources = Resources('foo', self.config)
         with self.assertRaises(FileNotFoundError):
             _ = resources.provider_image
@@ -192,7 +192,7 @@ class ImageTest(unittest.TestCase):
             assert resources.provider_image == expected_image_path
 
         glance_mock.images.data.assert_called_with('1')
-        print(open_mock.call_args_list)
+
         self.assertEqual([mock.call('tempfile', 'wb'),
                           mock.call('tempfile', 'rb')],
                           open_mock.call_args_list)
