@@ -17,7 +17,7 @@ The following Debian packages provide the core virtualization technologies.
   - qemu-tools
   - dnsmasq
   - virt-viewer
-  - virtinstall
+  - virtinst
   - python3-libvirt
 
 These Debian packages are required in the Tutorial's last chapters.

@@ -10,7 +10,7 @@ Microsoft made available for downloading `ready-made virtual machine disk images
 
 These images are for testing purposes only and they do not allow samples analysis at scale. Yet they are a good starting point for our analysis environment.
 
-Unfortunately, there are no QCOW2 copies available. Even though QEMU allows to execute other disk formats, it is highly recommended to convert the downloaded disk image in QCOW2 format.
+Unfortunately, there are no QCOW2 copies available. Even though QEMU allows to execute other disk formats, it is highly recommended to convert the downloaded disk image in QCOW2 format. The VMWare platform is the one used in the Tutorial.
 
 The downloaded file will be a ZIP archive containing a OVA file. OVA files can be extracted in the following way.
 
