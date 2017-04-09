@@ -106,7 +106,7 @@ class ValidAddressTest(unittest.TestCase):
         virnetwork.XMLDesc.side_effect = (
             lambda x:
             '<a><ip address="192.168.%s.1" netmask="255.255.255.0"/></a>'
-            % random.randint(1, 256))
+            % random.randint(1, 255))
         hypervisor.listNetworks.return_value = ('foo', 'bar', 'baz')
         hypervisor.networkLookupByName.return_value = virnetwork
         configuration = {'ipv4': '192.168.0.0',
@@ -115,7 +115,26 @@ class ValidAddressTest(unittest.TestCase):
 
         self.assertTrue(network.generate_address(hypervisor, configuration) in
                         [ipaddress.IPv4Network(u'192.168.{}.0/24'.format(i))
-                         for i in range(1, 256)])
+                         for i in range(1, 255)])
+
+    def test_randomised(self):
+        """NETWORK Address generation is randomised."""
+        virnetwork = mock.Mock()
+        hypervisor = mock.Mock()
+        virnetwork.XMLDesc.side_effect = (
+            lambda x:
+            '<a><ip address="192.168.%s.1" netmask="255.255.255.0"/></a>'
+            % random.randint(1, 255))
+        hypervisor.listNetworks.return_value = ('foo', 'bar', 'baz')
+        hypervisor.networkLookupByName.return_value = virnetwork
+        configuration = {'ipv4': '192.168.0.0',
+                         'prefix': 16,
+                         'subnet_prefix': 24}
+
+        addresses = set(network.generate_address(hypervisor, configuration)
+                        for _ in range(10))
+
+        self.assertTrue(len(addresses) > 1)
 
     def test_invalid(self):
         """NETWORK ValueError is raised if configuration address is invalid."""
@@ -124,7 +143,7 @@ class ValidAddressTest(unittest.TestCase):
         virnetwork.XMLDesc.side_effect = (
             lambda x:
             '<a><ip address="192.168.%s.1" netmask="255.255.255.0"/></a>'
-            % random.randint(1, 256))
+            % random.randint(1, 255))
         hypervisor.listNetworks.return_value = ('foo', 'bar', 'baz')
         hypervisor.networkLookupByName.return_value = virnetwork
         configuration = {'ipv4': '192.168.0.1',
