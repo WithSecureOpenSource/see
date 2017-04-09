@@ -28,7 +28,7 @@ Configuration::
     }
 }
 
-The User must specify the path of the libvirt XML configuration.
+The User can optionally specify the path of the libvirt XML configuration.
 
 The following fields in the configuration file are added or replaced.
 
@@ -80,9 +80,15 @@ def create(hypervisor, identifier, configuration):
 
     """
     counter = count()
+    xml_config = DEFAULT_NETWORK_XML
 
-    with open(configuration['configuration']) as xml_file:
-        xml_config = xml_file.read()
+    if not {'configuration', 'dynamic_address'} & set(configuration.keys()):
+        raise RuntimeError(
+            "Either configuration or dynamic_address must be specified")
+
+    if 'configuration' in configuration:
+        with open(configuration['configuration']) as xml_file:
+            xml_config = xml_file.read()
 
     while True:
         if 'dynamic_address' in configuration:
@@ -221,3 +227,8 @@ def active_network_addresses(hypervisor):
 
 
 MAX_ATTEMPTS = 10
+DEFAULT_NETWORK_XML = """
+<network>
+  <forward mode="nat"/>
+</network>
+"""
