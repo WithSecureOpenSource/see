@@ -33,6 +33,8 @@ Proceed with the desired customisation. As an additional action, install Python3
 
 Make sure the virtualized OS is correctly shut down once done.
 
+The `Virt Manager <https://virt-manager.org/>`_ tool can help to configure and set up the virtual machine.
+
 Configuring SEE
 ---------------
 
