@@ -58,10 +58,13 @@ configuration will cause RuntimeError to be raised.
 
 """
 
-import libvirt
+import random
 import ipaddress
+
 from itertools import count
 import xml.etree.ElementTree as etree
+
+import libvirt
 
 from see.context.resources.helpers import subelement
 
@@ -192,8 +195,8 @@ def address_lookup(hypervisor, address_pool):
     active_addresses = set(active_network_addresses(hypervisor))
 
     try:
-        return address_pool.difference(active_addresses).pop()
-    except KeyError:
+        return random.choice(tuple(address_pool - active_addresses))
+    except IndexError:
         raise RuntimeError("All IP addresses are in use")
 
 
