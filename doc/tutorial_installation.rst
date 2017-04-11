@@ -24,6 +24,7 @@ These Debian packages are required in the Tutorial's last chapters.
 
   - tshark
   - volatility
+  - virt-manager
   - python3-guestfs
   - python3-requests
 

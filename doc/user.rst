@@ -215,9 +215,11 @@ A typical scenario is the execution of a Sandbox connected to a subnetwork. For 
 
 SEE can provision a subnetwork attaching to it the sandbox and taking care of its allocation and removal. This feature is controlled by the `network` field.
 
-The `network` field specifies the virtual subnetwork in which the container will be placed. As for the `domain`, a `configuration` file must be provided. Please refer to the `libvirt Networking <http://libvirt.org/formatnetwork.html>`_ page for configuring a virtual network.
+The `network` field specifies the virtual subnetwork in which the container will be placed.
+The User can optionally provide a `configuration` file. Please refer to the `libvirt Networking <http://libvirt.org/formatnetwork.html>`_ page for configuring a virtual network.
+If no XML configuration file is specified, SEE will generate a network with NAT forward mode for the User based on the details provided by the `dynamic_address`.
 
-If provided, the `dynamic_address` will delegate to SEE the generation of a valid IPv4 address, the XML configuration must not contain an `ip` field if so. The User must specify the address and prefix of the network in which to create the subnetwork as well as the subnetwork prefix. SEE will generate a random subnetwork address according to the specifications avoiding collisions with other existing libvirt networks. A DHCP server will be provided within the subnetwork serving the sandbox guest Operating System.
+The `dynamic_address` delegates to SEE the generation of a valid IPv4 address, the XML configuration must not contain an `ip` field if so. The User must specify the address and prefix of the network in which to create the subnetwork as well as the subnetwork prefix. SEE will generate a random subnetwork address according to the specifications avoiding collisions with other existing libvirt networks. A DHCP server will be provided within the subnetwork serving the sandbox guest Operating System.
 
 The following JSON snippet shows an example of a network configuration with dynamic address generation.
 

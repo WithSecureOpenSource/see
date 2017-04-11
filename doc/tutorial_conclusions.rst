@@ -226,7 +226,6 @@ Here follows the source code and configuration used in the examples.
        },
        "network":
        {
-           "configuration": "/home/username/network.xml",
            "dynamic_address":
            {
                "ipv4": "192.168.0.0",
@@ -235,12 +234,3 @@ Here follows the source code and configuration used in the examples.
            }
        }
    }
-
-`network.xml`
-
-::
-
-
-   <network>
-     <forward mode="nat"/>
-   </network>

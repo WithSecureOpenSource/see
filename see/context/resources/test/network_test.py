@@ -106,7 +106,7 @@ class ValidAddressTest(unittest.TestCase):
         virnetwork.XMLDesc.side_effect = (
             lambda x:
             '<a><ip address="192.168.%s.1" netmask="255.255.255.0"/></a>'
-            % random.randint(1, 256))
+            % random.randint(1, 255))
         hypervisor.listNetworks.return_value = ('foo', 'bar', 'baz')
         hypervisor.networkLookupByName.return_value = virnetwork
         configuration = {'ipv4': '192.168.0.0',
@@ -115,7 +115,26 @@ class ValidAddressTest(unittest.TestCase):
 
         self.assertTrue(network.generate_address(hypervisor, configuration) in
                         [ipaddress.IPv4Network(u'192.168.{}.0/24'.format(i))
-                         for i in range(1, 256)])
+                         for i in range(1, 255)])
+
+    def test_randomised(self):
+        """NETWORK Address generation is randomised."""
+        virnetwork = mock.Mock()
+        hypervisor = mock.Mock()
+        virnetwork.XMLDesc.side_effect = (
+            lambda x:
+            '<a><ip address="192.168.%s.1" netmask="255.255.255.0"/></a>'
+            % random.randint(1, 255))
+        hypervisor.listNetworks.return_value = ('foo', 'bar', 'baz')
+        hypervisor.networkLookupByName.return_value = virnetwork
+        configuration = {'ipv4': '192.168.0.0',
+                         'prefix': 16,
+                         'subnet_prefix': 24}
+
+        addresses = set(network.generate_address(hypervisor, configuration)
+                        for _ in range(10))
+
+        self.assertTrue(len(addresses) > 1)
 
     def test_invalid(self):
         """NETWORK ValueError is raised if configuration address is invalid."""
@@ -124,7 +143,7 @@ class ValidAddressTest(unittest.TestCase):
         virnetwork.XMLDesc.side_effect = (
             lambda x:
             '<a><ip address="192.168.%s.1" netmask="255.255.255.0"/></a>'
-            % random.randint(1, 256))
+            % random.randint(1, 255))
         hypervisor.listNetworks.return_value = ('foo', 'bar', 'baz')
         hypervisor.networkLookupByName.return_value = virnetwork
         configuration = {'ipv4': '192.168.0.1',
@@ -186,9 +205,22 @@ class CreateTest(unittest.TestCase):
         hypervisor = mock.Mock()
         hypervisor.listNetworks.return_value = []
         with mock.patch('see.context.resources.network.open', mock.mock_open(read_data=xml), create=True):
-            network.create(hypervisor, 'foo', {'configuration': '/foo', 'ip_autodiscovery': False})
+            network.create(hypervisor, 'foo', {'configuration': '/foo'})
         results = hypervisor.networkCreateXML.call_args_list[0][0][0]
         self.assertEqual(results, expected, compare(results, expected))
+
+    def test_create_no_xml_file(self):
+        """NETWORK Default XML is used if none is provided."""
+        expected = """<forward mode="nat" />"""
+        hypervisor = mock.Mock()
+        hypervisor.listNetworks.return_value = []
+        network.create(hypervisor, 'foo', {'dynamic_address':
+                                           {'ipv4': '192.168.0.0',
+                                            'prefix': 16,
+                                            'subnet_prefix': 24}})
+        results = hypervisor.networkCreateXML.call_args_list[0][0][0]
+
+        self.assertTrue(expected in results, compare(results, expected))
 
     def test_create_xml_error(self):
         """NETWORK RuntimeError is raised in case of creation error."""
@@ -199,8 +231,14 @@ class CreateTest(unittest.TestCase):
         hypervisor.networkCreateXML.side_effect = libvirt.libvirtError('BOOM')
         with mock.patch('see.context.resources.network.open', mock.mock_open(read_data=xml), create=True):
             with self.assertRaises(RuntimeError) as error:
-                network.create(hypervisor, 'foo', {'configuration': '/foo', 'ip_autodiscovery': False})
+                network.create(hypervisor, 'foo', {'configuration': '/foo'})
                 self.assertEqual(str(error), "Unable to create new network: BOOM.")
+
+    def test_create_empty_config(self):
+        """NETWORK RuntimeError raised if empty configuration."""
+        hypervisor = mock.Mock()
+        with self.assertRaises(RuntimeError):
+            network.create(hypervisor, 'foo', {})
 
     def test_delete(self):
         """NETWORK Network is destroyed on delete()."""
