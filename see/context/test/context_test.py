@@ -74,6 +74,7 @@ class SeeContextTest(unittest.TestCase):
         """IP address is set if not present."""
         self.context._mac_address = "00:00:00:00"
         self.context.network.DHCPLeases.return_value = [{
+            'type': 0,
             'ipaddr': '0.0.0.0',
             'mac': '00:00:00:00'}]
 
@@ -95,6 +96,17 @@ class SeeContextTest(unittest.TestCase):
         self.context.network.DHCPLeases.return_value = []
 
         self.assertEqual(self.context.ip4_address, None)
+
+    def test_ip6_addr(self):
+        """IP address is set if not present."""
+        self.context._mac_address = "00:00:00:00"
+        self.context.network.DHCPLeases.return_value = [{
+            'type': 1,
+            'ipaddr': '::',
+            'mac': '00:00:00:00'}]
+
+        self.assertEqual(self.context.ip6_address, '::')
+        self.assertEqual(self.context._ip6_address, '::')
 
     def test_state_transition(self):
         """State transition map is honoured."""
