@@ -133,11 +133,7 @@ class SeeContext(Context):
     def hypervisor(self):
         """libvirt.virConnect."""
         with self._hypervisor_mutex:
-            if self._resources.hypervisor.isAlive():
-                return self._resources.hypervisor
-            else:
-                raise RuntimeError(self.identifier,
-                                   "Hypervisor connection is closed")
+            return self._resources.hypervisor
 
     @property
     def domain(self):
@@ -149,19 +145,13 @@ class SeeContext(Context):
     def storage_pool(self):
         """libvirt.virStoragePool."""
         with self._storage_pool_mutex:
-            if self._resources.storage_pool.isActive():
-                return self._resources.storage_pool
-            else:
-                raise RuntimeError(self.identifier, "Storage Pool unavailable.")
+            return self._resources.storage_pool
 
     @property
     def network(self):
         """libvirt.virNetwork."""
         with self._network_mutex:
-            if self._resources.network.isActive():
-                return self._resources.network
-            else:
-                raise RuntimeError(self.identifier, "Network is unavailable.")
+            return self._resources.network
 
     @property
     def mac_address(self):
