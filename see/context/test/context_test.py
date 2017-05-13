@@ -49,24 +49,6 @@ class SeeContextTest(unittest.TestCase):
         self.context = context.SeeContext('foo', self.resources)
         self.hook = TestHook(HookParameters('foo', {}, self.context))
 
-    def test_no_hypervisor(self):
-        """RuntimeError is raised if hypervisor connection is not alive."""
-        self.resources.hypervisor.isAlive.return_value = False
-        with self.assertRaises(RuntimeError):
-            self.context.hypervisor
-
-    def test_no_storage(self):
-        """RuntimeError is raised if storage_pool connection is not active."""
-        self.resources.storage_pool.isActive.return_value = False
-        with self.assertRaises(RuntimeError):
-            self.context.storage_pool
-
-    def test_no_network(self):
-        """RuntimeError is raised if network is not active."""
-        self.resources.network.isActive.return_value = False
-        with self.assertRaises(RuntimeError):
-            self.context.network
-
     def test_mac_addr(self):
         """MAC address is set if not present."""
         string_xml = """<domain>
