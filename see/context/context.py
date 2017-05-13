@@ -124,6 +124,7 @@ class SeeContext(Context):
         self._network_mutex = Lock()
         self._mac_address = None
         self._ip4_address = None
+        self._ip6_address = None
 
     def cleanup(self):
         """Claims the resources back."""
@@ -181,18 +182,31 @@ class SeeContext(Context):
 
         """
         if self._ip4_address is None and self.network is not None:
-            self._ip4_address = self._get_ip_address()
+            self._ip4_address = self._get_ip_address(
+                libvirt.VIR_IP_ADDR_TYPE_IPV4)
 
         return self._ip4_address
 
-    def _get_ip_address(self):
+    @property
+    def ip6_address(self):
+        """Returns the IPv6 address of the network interface.
+
+        If multiple interfaces are provided,
+        the address of the first found is returned.
+
+        """
+        if self._ip6_address is None and self.network is not None:
+            self._ip6_address = self._get_ip_address(
+                libvirt.VIR_IP_ADDR_TYPE_IPV6)
+
+        return self._ip6_address
+
+    def _get_ip_address(self, address_type):
         mac = self.mac_address
 
         for lease in self.network.DHCPLeases():
-            if mac == lease.get('mac'):
+            if mac == lease.get('mac') and lease.get('type') == address_type:
                 return lease.get('ipaddr')
-
-        return None
 
     def poweron(self, **kwargs):
         """
