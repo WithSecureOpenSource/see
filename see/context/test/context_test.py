@@ -72,11 +72,25 @@ class SeeContextTest(unittest.TestCase):
 
     def test_ip4_addr(self):
         """IP address is set if not present."""
-        self.context._mac_address = "00:00:00:00"
+        self.context._mac_address = "00:00:00:00:00:00"
+        self.context.domain.interfaceAddresses.return_value = {
+            'vnet0': {
+                'addrs': [{
+                    'type': 0,
+                    'addr': '0.0.0.0'}],
+                'hwaddr': '00:00:00:00:00:00'}}
+
+        self.assertEqual(self.context.ip4_address, '0.0.0.0')
+        self.assertEqual(self.context._ip4_address, '0.0.0.0')
+
+    def test_ip4_addr_old_libvirt(self):
+        """IP address is set if not present (libvirt < 1.3.0)."""
+        self.context._mac_address = "00:00:00:00:00:00"
+        self.context.domain.interfaceAddresses.side_effect = AttributeError()
         self.context.network.DHCPLeases.return_value = [{
-            'type': 0,
+            'type':0,
             'ipaddr': '0.0.0.0',
-            'mac': '00:00:00:00'}]
+            'mac': '00:00:00:00:00:00'}]
 
         self.assertEqual(self.context.ip4_address, '0.0.0.0')
         self.assertEqual(self.context._ip4_address, '0.0.0.0')
@@ -84,26 +98,47 @@ class SeeContextTest(unittest.TestCase):
     def test_ip4_no_interface(self):
         """IPv4 address is None no interface is provided."""
         self.context.domain.XMLDesc.return_value = "<domain></domain>"
+        self.context.domain.interfaceAddresses.return_value = {
+            'vnet0': {
+                'addrs': [{
+                    'type': 0,
+                    'addr': '0.0.0.0'}],
+                'hwaddr': '00:00:00:00:00:00'}}
         self.context.network.DHCPLeases.return_value = [{
             'ipaddr': '0.0.0.0',
-            'mac': '00:00:00:00'}]
+            'mac': '00:00:00:00:00:00'}]
 
         self.assertEqual(self.context.ip4_address, None)
 
     def test_ip4_no_addresses(self):
         """IPv4 address is None interface has no associated address."""
-        self.context._mac_address = "00:00:00:00"
+        self.context._mac_address = "00:00:00:00:00:00"
+        self.context.domain.interfaceAddresses.return_value = {}
         self.context.network.DHCPLeases.return_value = []
 
         self.assertEqual(self.context.ip4_address, None)
 
     def test_ip6_addr(self):
         """IP address is set if not present."""
-        self.context._mac_address = "00:00:00:00"
+        self.context._mac_address = "00:00:00:00:00:00"
+        self.context.domain.interfaceAddresses.return_value = {
+            'vnet0': {
+                'addrs': [{
+                    'type': 1,
+                    'addr': '::'}],
+                'hwaddr': '00:00:00:00:00:00'}}
+
+        self.assertEqual(self.context.ip6_address, '::')
+        self.assertEqual(self.context._ip6_address, '::')
+
+    def test_ip6_addr_old_libvirt(self):
+        """IP address is set if not present (libvirt < 1.3.0)."""
+        self.context._mac_address = "00:00:00:00:00:00"
+        self.context.domain.interfaceAddresses.side_effect = AttributeError()
         self.context.network.DHCPLeases.return_value = [{
             'type': 1,
             'ipaddr': '::',
-            'mac': '00:00:00:00'}]
+            'mac': '00:00:00:00:00:00'}]
 
         self.assertEqual(self.context.ip6_address, '::')
         self.assertEqual(self.context._ip6_address, '::')
