@@ -36,7 +36,7 @@ The only configuration parameter is the agent port. The Hook will automatically 
 ::
 
    {
-       "name": "commands.CommandsHook",
+       "name": "plugins.commands.CommandsHook",
        "configuration": {
            "agent-port": 8080
        }
