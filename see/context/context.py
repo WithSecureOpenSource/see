@@ -204,6 +204,14 @@ class SeeContext(Context):
     def _get_ip_address(self, address_type):
         mac = self.mac_address
 
+        try:
+            interfaces = self.domain.interfaceAddresses(
+                libvirt.VIR_DOMAIN_INTERFACE_ADDRESSES_SRC_LEASE)
+        except AttributeError:  # libvirt < 1.3.0
+            pass
+        else:
+            return interface_lookup(interfaces, mac, address_type)
+
         for lease in self.network.DHCPLeases():
             if mac == lease.get('mac') and lease.get('type') == address_type:
                 return lease.get('ipaddr')
@@ -342,3 +350,12 @@ class SeeContext(Context):
             command(*args)
         except libvirt.libvirtError as error:
             raise RuntimeError("Unable to execute command. %s" % error)
+
+
+def interface_lookup(interfaces, hwaddr, address_type):
+    """Search the address within the interface list."""
+    for interface in interfaces.values():
+        if interface.get('hwaddr') == hwaddr:
+            for address in interface.get('addrs'):
+                if address.get('type') == address_type:
+                    return address.get('addr')
