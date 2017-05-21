@@ -12,6 +12,7 @@
 # implied.  See the License for the specific language governing
 # permissions and limitations under the License.
 
+import os
 import sys
 from setuptools import setup, find_packages
 
@@ -21,6 +22,11 @@ required_packages = ['libvirt-python']
 major_version, minor_version = sys.version_info[:2]
 if major_version < 3 or minor_version < 3:
     required_packages.append('ipaddress')
+
+
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
 
 setup(
     name="python-see",
@@ -33,6 +39,7 @@ setup(
     install_requires=required_packages,
     keywords="sandbox test automation",
     url="https://github.com/f-secure/see",
+    long_description=read('README.rst'),
     classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
