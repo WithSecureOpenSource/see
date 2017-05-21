@@ -92,6 +92,8 @@ The protocol will act on the Context which will be observed by the Hooks and the
                context.trigger('ip_address', address=context.ip_address)
                return
 
+           time.sleep(1)
+
        raise TimeoutError("Waiting for IP address")
 
 The above example is pretty simple to understand. After powering on the Sandbox, we wait for its IP address to be ready. We then inject the sample and let it run for a given amount of time. We notify the plugins that the VM is about to be shut down letting them capture any necessary information. Once powered off the VM, we proceed analysing the gathered information.

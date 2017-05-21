@@ -63,6 +63,8 @@ Here follows the source code and configuration used in the examples.
                context.trigger('ip_address', address=context.ip4_address)
                return
 
+           time.sleep(1)
+
        raise TimeoutError("Waiting for IP address")
 
    def parse_arguments():
