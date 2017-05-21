@@ -24,7 +24,7 @@ if major_version < 3 or minor_version < 3:
 
 setup(
     name="python-see",
-    version="1.2.2",
+    version="1.2.3",
     author="F-Secure Corporation",
     author_email="matteo.cafasso@f-secure.com",
     description=("Sandboxed Execution Environment"),
