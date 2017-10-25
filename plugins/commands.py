@@ -66,8 +66,8 @@ class CommandsHook(Hook):
 
     def setup_handlers(self):
         self.context.subscribe('ip_address', self.set_address_handler)
-        self.context.subscribe('run_command', self.run_command_handler)
-        self.context.subscribe('run_sample', self.run_sample_handler)
+        self.context.subscribe_async('run_command', self.run_command_handler)
+        self.context.subscribe_async('run_sample', self.run_sample_handler)
 
         self.logger.debug("Command execution registered at run_command event")
         self.logger.debug("Sample execution registered at run_sample event")
