@@ -99,7 +99,7 @@ BASE_POOL_CONFIG = """
 <pool type='dir'>
   <name>{0}</name>
   <target>
-    <path>{0}</path>
+    <path>{1}</path>
   </target>
 </pool>
 """
@@ -306,7 +306,7 @@ def disk_clone(hypervisor, identifier, storage_pool, configuration, image):
     except libvirt.libvirtError:
         if os.path.exists(image):
             pool = hypervisor.storagePoolDefineXML(BASE_POOL_CONFIG.format(
-                os.path.dirname(image)))
+                identifier, os.path.dirname(image)))
             pool.setAutostart(True)
             pool.create()
             pool.refresh()
