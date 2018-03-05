@@ -2,6 +2,7 @@ import mock
 import libvirt
 import difflib
 import unittest
+import xml.etree.ElementTree as etree
 
 from see.context.resources import qemu
 
@@ -242,6 +243,26 @@ class PoolDeleteTest(unittest.TestCase):
 
 
 class DiskCloneTest(unittest.TestCase):
+    @mock.patch('os.path.exists')
+    def test_clone_fwdslash(self, os_mock):
+        """QEMU Clone no COW."""
+        os_mock.return_value = True
+        pool = mock.Mock()
+        volume = mock.Mock()
+        hypervisor = mock.Mock()
+        hypervisor.storageVolLookupByPath.side_effect = libvirt.libvirtError('BAM!')
+        pool.XMLDesc.return_value = """<pool><target><path>/pool/path</path></target></pool>"""
+        volume.XMLDesc.return_value = """<volume><target><path>/path/volume.qcow2</path>""" +\
+                                      """</target><capacity>10</capacity></volume>"""
+        expected = """<volume type="file"><name>foo</name><uuid>foo</uuid><target>""" +\
+                   """<path>/pool/path/foo.qcow2</path><permissions>""" +\
+                   """<mode>0644</mode></permissions>""" +\
+                   """<format type="qcow2" /></target>""" +\
+                   """<capacity>10</capacity></volume>"""
+        with self.assertRaises(libvirt.libvirtError) as error:
+            qemu.disk_clone(hypervisor, 'foo', pool, {}, '/foo/bar/baz.qcow2')
+        self.assertFalse('/' in etree.fromstring(hypervisor.storagePoolDefineXML.call_args[0][0]).find('.//name').text)
+
     def test_clone(self):
         """QEMU Clone no COW."""
         pool = mock.Mock()
