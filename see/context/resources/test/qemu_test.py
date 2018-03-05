@@ -247,6 +247,7 @@ class DiskCloneTest(unittest.TestCase):
     def test_clone_fwdslash(self, os_mock):
         """QEMU Clone no COW."""
         os_mock.return_value = True
+        logger = mock.Mock()
         pool = mock.Mock()
         volume = mock.Mock()
         hypervisor = mock.Mock()
@@ -260,11 +261,12 @@ class DiskCloneTest(unittest.TestCase):
                    """<format type="qcow2" /></target>""" +\
                    """<capacity>10</capacity></volume>"""
         with self.assertRaises(libvirt.libvirtError) as error:
-            qemu.disk_clone(hypervisor, 'foo', pool, {}, '/foo/bar/baz.qcow2')
+            qemu.disk_clone(hypervisor, 'foo', pool, {}, '/foo/bar/baz.qcow2', logger)
         self.assertFalse('/' in etree.fromstring(hypervisor.storagePoolDefineXML.call_args[0][0]).find('.//name').text)
 
     def test_clone(self):
         """QEMU Clone no COW."""
+        logger = mock.Mock()
         pool = mock.Mock()
         volume = mock.Mock()
         hypervisor = mock.Mock()
@@ -277,13 +279,14 @@ class DiskCloneTest(unittest.TestCase):
                    """<mode>0644</mode></permissions>""" +\
                    """<format type="qcow2" /></target>""" +\
                    """<capacity>10</capacity></volume>"""
-        qemu.disk_clone(hypervisor, 'foo', pool, {}, '/foo/bar/baz.qcow2')
+        qemu.disk_clone(hypervisor, 'foo', pool, {}, '/foo/bar/baz.qcow2', logger)
         results = pool.createXMLFrom.call_args_list[0][0][0]
         results = results.replace('\n', '').replace('\t', '').replace('  ', '')
         self.assertEqual(results, expected, compare(results, expected))
 
     def test_clone_cow(self):
         """QEMU Clone with COW."""
+        logger = mock.Mock()
         pool = mock.Mock()
         volume = mock.Mock()
         hypervisor = mock.Mock()
@@ -296,18 +299,19 @@ class DiskCloneTest(unittest.TestCase):
                    """<format type="qcow2" /></target><capacity>10</capacity>""" +\
                    """<backingStore><path>/path/volume.qcow2</path><format type="qcow2" />""" +\
                    """</backingStore></volume>"""
-        qemu.disk_clone(hypervisor, 'foo', pool, {'copy_on_write': True}, '/foo/bar/baz.qcow2')
+        qemu.disk_clone(hypervisor, 'foo', pool, {'copy_on_write': True}, '/foo/bar/baz.qcow2', logger)
         results = pool.createXML.call_args_list[0][0][0]
         results = results.replace('\n', '').replace('\t', '').replace('  ', '')
         self.assertEqual(results, expected, compare(results, expected))
 
     def test_clone_error(self):
         """QEMU RuntimeError is raised if the base image is not contained within a libvirt Pool."""
+        logger = mock.Mock()
         pool = mock.Mock()
         hypervisor = mock.Mock()
         hypervisor.storageVolLookupByPath.side_effect = libvirt.libvirtError('BOOM')
         with self.assertRaises(RuntimeError) as error:
-            qemu.disk_clone(hypervisor, 'foo', pool, {}, '/foo/bar/baz.qcow2')
+            qemu.disk_clone(hypervisor, 'foo', pool, {}, '/foo/bar/baz.qcow2', logger)
             self.assertEqual(str(error), "/foo/bar/baz.qcow2 disk must be contained in a libvirt storage pool.")
 
 
@@ -374,7 +378,7 @@ class ResourcesTest(unittest.TestCase):
         pool_mock.assert_called_with(resources.hypervisor, 'foo', '/baz')
         disk_mock.assert_called_with(resources.hypervisor, 'foo', pool,
                                      {'storage_pool_path': '/baz'},
-                                     '/foo/bar.qcow2')
+                                     '/foo/bar.qcow2', mock.ANY)
         create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar',
                                        '/foo/bar', network_name=None)
 

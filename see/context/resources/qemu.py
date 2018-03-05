@@ -286,7 +286,7 @@ def volumes_delete(storage_pool, logger):
         logger.exception("Unable to delete storage volumes.")
 
 
-def disk_clone(hypervisor, identifier, storage_pool, configuration, image):
+def disk_clone(hypervisor, identifier, storage_pool, configuration, image, logger):
     """Disk image cloning.
 
     Given an original disk image it clones it into a new one, the clone will be created within the storage pool.
@@ -305,8 +305,11 @@ def disk_clone(hypervisor, identifier, storage_pool, configuration, image):
         volume = hypervisor.storageVolLookupByPath(image)
     except libvirt.libvirtError:
         if os.path.exists(image):
+            pool_path = os.path.dirname(image)
+            logger.info("LibVirt pool does not exist, creating {} pool".format(
+                pool_path.replace('/', '_')))
             pool = hypervisor.storagePoolDefineXML(BASE_POOL_CONFIG.format(
-                identifier, os.path.dirname(image)))
+                pool_path.replace('/', '_'), pool_path))
             pool.setAutostart(True)
             pool.create()
             pool.refresh()
@@ -408,8 +411,8 @@ class QEMUResources(resources.Resources):
 
     def _clone_disk(self, configuration):
         """Clones the disk and returns the path to the new disk."""
-        disk_clone(self._hypervisor, self.identifier,
-                   self._storage_pool, configuration, self.provider_image)
+        disk_clone(self._hypervisor, self.identifier, self._storage_pool,
+                   configuration, self.provider_image, self.logger)
         disk_name = self._storage_pool.listVolumes()[0]
 
         return self._storage_pool.storageVolLookupByName(disk_name).path()
