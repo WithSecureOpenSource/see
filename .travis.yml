@@ -14,7 +14,7 @@ matrix:
       sudo: required
       python: 3.6
 install:
-  - sudo apt install python-libvirt python3-libvirt libvirt-dev
+  - sudo apt install python-ipaddress python-libvirt python3-libvirt
   - sudo pip install --upgrade pip
   - sudo pip install --upgrade setuptools
   - sudo pip install --upgrade pytest
