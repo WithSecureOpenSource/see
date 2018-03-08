@@ -1,4 +1,4 @@
-# Copyright 2015-2016 F-Secure
+# Copyright 2015-2017 F-Secure
 
 # Licensed under the Apache License, Version 2.0 (the "License"); you
 # may not use this file except in compliance with the License.  You may
@@ -12,7 +12,7 @@
 # implied.  See the License for the specific language governing
 # permissions and limitations under the License.
 
-from traceback import print_exc
+import logging
 from threading import RLock, Thread
 from collections import defaultdict, namedtuple
 
@@ -125,20 +125,30 @@ def prime_event(event, source, **kwargs):
     return event
 
 
-def asynchronous(function, *args, **kwargs):
+def asynchronous(function, event):
     """
     Runs the function asynchronously taking care of exceptions.
     """
-    thread = Thread(target=function, args=args, kwargs=kwargs)
+    thread = Thread(target=synchronous, args=(function, event))
     thread.daemon = True
     thread.start()
 
 
-def synchronous(function, *args, **kwargs):
+def synchronous(function, event):
     """
     Runs the function synchronously taking care of exceptions.
     """
     try:
-        function(*args, **kwargs)
-    except Exception:
-        print_exc()
+        function(event)
+    except Exception as error:
+        logger = get_function_logger(function)
+        logger.exception(error)
+
+
+def get_function_logger(function):
+    if hasattr(function, '__self__'):
+        return logging.getLogger(
+            "%s.%s" % (function.__module__,
+                       function.__self__.__class__.__name__))
+    else:
+        return logging.getLogger(function.__module__)

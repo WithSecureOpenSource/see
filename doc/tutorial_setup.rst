@@ -10,9 +10,9 @@ Microsoft made available for downloading `ready-made virtual machine disk images
 
 These images are for testing purposes only and they do not allow samples analysis at scale. Yet they are a good starting point for our analysis environment.
 
-Unfortunately, there are no QCOW2 copies available. Even though QEMU allows to execute other disk formats, it is highly recommended to convert the downloaded disk image in QCOW2 format.
+Unfortunately, there are no QCOW2 copies available. Even though QEMU allows to execute other disk formats, it is highly recommended to convert the downloaded disk image in QCOW2 format. The VMWare platform is the one used in the Tutorial.
 
-The downloaded file will be a ZIP archive containing a OVA file. OVA files can be extracted in the following way.
+If the downloaded ZIP archive contains an OVA file, the following command will successfully unpack it.
 
 ::
 
@@ -25,13 +25,25 @@ The OVF file can be automatically converted and imported using virt-convert tool
 ::
 
   $ mkdir /home/username/images
-  $ virt-convert --disk-format qcow2 --destination /home/username/images --connect qemu:///system "IE8 - Win7.ovf"
+  $ virt-convert --disk-format qcow2 --destination /home/username/images --connect qemu:///system "./IE8 - Win7.ovf"
 
-If successful, the User will be prompted to a VNC connection where the Operating System will be booting. Make sure the drivers get automatically installed (it might require to reboot the OS). Once done, ensure basic things such as Internet connection are working.
+If successful, the User will be prompted to a VNC connection where the Operating System will be booting. Make sure the drivers get automatically installed (it might require to reboot the OS).
+
+In case of issues, a suggested solution is replacing the video adapter of the virtual machine.
+
+::
+
+  $ virsh -c qemu:///system edit IE8_-_Win7.ovf
+
+Replace the xml attribute `type` of the field `model` in the `video` section from `qxl` to `cirrus`.
+
+Once done, ensure basic things such as Internet connection are working.
 
 Proceed with the desired customisation. As an additional action, install Python3 within the OS. This is not strictly necessary but will help later in the Tutorial.
 
 Make sure the virtualized OS is correctly shut down once done.
+
+The `Virt Manager <https://virt-manager.org/>`_ tool can help to configure and set up the virtual machine.
 
 Configuring SEE
 ---------------

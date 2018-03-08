@@ -1,4 +1,4 @@
-# Copyright 2015-2016 F-Secure
+# Copyright 2015-2017 F-Secure
 
 # Licensed under the Apache License, Version 2.0 (the "License"); you
 # may not use this file except in compliance with the License.  You may
@@ -28,7 +28,7 @@ Configuration::
     }
 }
 
-The User must specify the path of the libvirt XML configuration.
+The User can optionally specify the path of the libvirt XML configuration.
 
 The following fields in the configuration file are added or replaced.
 
@@ -58,10 +58,13 @@ configuration will cause RuntimeError to be raised.
 
 """
 
-import libvirt
+import random
 import ipaddress
+
 from itertools import count
 import xml.etree.ElementTree as etree
+
+import libvirt
 
 from see.context.resources.helpers import subelement
 
@@ -77,9 +80,15 @@ def create(hypervisor, identifier, configuration):
 
     """
     counter = count()
+    xml_config = DEFAULT_NETWORK_XML
 
-    with open(configuration['configuration']) as xml_file:
-        xml_config = xml_file.read()
+    if not {'configuration', 'dynamic_address'} & set(configuration.keys()):
+        raise RuntimeError(
+            "Either configuration or dynamic_address must be specified")
+
+    if 'configuration' in configuration:
+        with open(configuration['configuration']) as xml_file:
+            xml_config = xml_file.read()
 
     while True:
         if 'dynamic_address' in configuration:
@@ -192,8 +201,8 @@ def address_lookup(hypervisor, address_pool):
     active_addresses = set(active_network_addresses(hypervisor))
 
     try:
-        return address_pool.difference(active_addresses).pop()
-    except KeyError:
+        return random.choice(tuple(address_pool - active_addresses))
+    except IndexError:
         raise RuntimeError("All IP addresses are in use")
 
 
@@ -218,3 +227,8 @@ def active_network_addresses(hypervisor):
 
 
 MAX_ATTEMPTS = 10
+DEFAULT_NETWORK_XML = """
+<network>
+  <forward mode="nat"/>
+</network>
+"""

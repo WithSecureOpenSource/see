@@ -63,6 +63,8 @@ Here follows the source code and configuration used in the examples.
                context.trigger('ip_address', address=context.ip4_address)
                return
 
+           time.sleep(1)
+
        raise TimeoutError("Waiting for IP address")
 
    def parse_arguments():
@@ -226,7 +228,6 @@ Here follows the source code and configuration used in the examples.
        },
        "network":
        {
-           "configuration": "/home/username/network.xml",
            "dynamic_address":
            {
                "ipv4": "192.168.0.0",
@@ -235,12 +236,3 @@ Here follows the source code and configuration used in the examples.
            }
        }
    }
-
-`network.xml`
-
-::
-
-
-   <network>
-     <forward mode="nat"/>
-   </network>

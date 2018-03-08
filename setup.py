@@ -1,4 +1,4 @@
-# Copyright 2015-2016 F-Secure
+# Copyright 2015-2017 F-Secure
 
 # Licensed under the Apache License, Version 2.0 (the "License"); you
 # may not use this file except in compliance with the License.  You may
@@ -12,6 +12,7 @@
 # implied.  See the License for the specific language governing
 # permissions and limitations under the License.
 
+import os
 import sys
 from setuptools import setup, find_packages
 
@@ -22,9 +23,14 @@ major_version, minor_version = sys.version_info[:2]
 if major_version < 3 or minor_version < 3:
     required_packages.append('ipaddress')
 
+
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+
 setup(
     name="python-see",
-    version="1.2.0",
+    version="1.2.6",
     author="F-Secure Corporation",
     author_email="matteo.cafasso@f-secure.com",
     description=("Sandboxed Execution Environment"),
@@ -33,6 +39,7 @@ setup(
     install_requires=required_packages,
     keywords="sandbox test automation",
     url="https://github.com/f-secure/see",
+    long_description=read('README.rst'),
     classifiers=[
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",

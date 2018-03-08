@@ -1,4 +1,4 @@
-# Copyright 2015-2016 F-Secure
+# Copyright 2015-2017 F-Secure
 
 # Licensed under the Apache License, Version 2.0 (the "License"); you
 # may not use this file except in compliance with the License.  You may
@@ -28,7 +28,7 @@ class TimersHook(Hook):
     configuration::
 
         {
-          "timers": {40: "event_to_trigger_after_40_seconds"}
+          "timers": {"event_to_trigger_after_40_seconds": 40}
         }
 
     Timers are started during Hook's initialization.
@@ -37,5 +37,14 @@ class TimersHook(Hook):
     def __init__(self, parameters):
         super().__init__(parameters)
 
-        for time, event in self.configuration.get('timers', {}).items():
-            Timer(time, self.context.trigger, args=(event, )).start()
+        self.timers = tuple(
+            Timer(t, self.context.trigger, args=(e, ))
+            for e, t in self.configuration.get('timers', {}).items())
+
+        for timer in self.timers:
+            timer.daemon = True
+            timer.start()
+
+    def cleanup(self):
+        for timer in self.timers:
+            timer.cancel()
