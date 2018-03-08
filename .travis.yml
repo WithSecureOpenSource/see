@@ -14,10 +14,11 @@ matrix:
       sudo: required
       python: 3.6
 install:
+  - sudo apt install python-libvirt python3-libvirt libvirt-dev
   - sudo pip install --upgrade pip
   - sudo pip install --upgrade setuptools
   - sudo pip install --upgrade pytest
-  - python setup.py install
+  - sudo pip install --upgrade mock
 script:
   - python -m pytest -v
 branches:
