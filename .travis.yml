@@ -1,0 +1,25 @@
+language: python
+matrix:
+  include:
+    - os: linux
+      sudo: required
+      python: 2.7
+    - os: linux
+      sudo: required
+      python: 3.4
+    - os: linux
+      sudo: required
+      python: 3.5
+    - os: linux
+      sudo: required
+      python: 3.6
+install:
+  - sudo pip install --upgrade pip
+  - sudo pip install --upgrade setuptools
+  - sudo pip install --upgrade pytest
+  - python setup.py install
+script:
+  - python -m pytest -v
+branches:
+  only:
+    - master
