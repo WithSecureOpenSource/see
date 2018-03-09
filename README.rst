@@ -1,6 +1,19 @@
 Sandboxed Execution Environment
 ===============================
 
+:Source: https://github.com/F-Secure/see
+:Documentation: http://see.readthedocs.io
+:Download: https://pypi.python.org/pypi/python-see
+
+|travis badge| |docs badge|
+
+.. |travis badge| image:: https://travis-ci.org/F-Secure/see.svg?branch=master
+   :target: https://travis-ci.org/F-Secure/see
+   :alt: Build Status
+.. |docs badge| image:: https://readthedocs.org/projects/see/badge/?version=latest
+   :target: http://see.readthedocs.io/en/latest/?badge=latest
+   :alt: Documentation Status
+
 Introduction
 ------------
 
@@ -72,14 +85,6 @@ Each Hook has direct access to the Sandbox which exposes a simple API for it's c
 
 Links
 -----
-
-Project page.
-
-https://pypi.python.org/pypi/python-see
-
-Project tutorial and documentation.
-
-https://pythonhosted.org/python-see
 
 Libvirt project page.
 
