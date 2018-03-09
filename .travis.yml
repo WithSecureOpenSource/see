@@ -17,7 +17,7 @@ install:
   - sudo apt install libvirt-dev
   - pip install --upgrade pip
   - pip install --upgrade mock
-  - pip install --upgrade nose
+  - pip install --upgrade pytest
   - pip install --upgrade setuptools
   - pip install -I libvirt-python==4.0.0
   - pip install .
