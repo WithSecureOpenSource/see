@@ -188,6 +188,7 @@ class ImageTest(unittest.TestCase):
         resources = Resources('foo', self.config)
         expected_image_path = self.config['disk']['image']['provider_configuration']['target_path']
 
+        open_mock.reset_mock()
         with self.assertRaisesRegexp(RuntimeError, 'Checksum failure. File: '):
             assert resources.provider_image == expected_image_path
 
@@ -195,5 +196,6 @@ class ImageTest(unittest.TestCase):
 
         self.assertEqual([mock.call('tempfile', 'wb'),
                           mock.call('tempfile', 'rb')],
-                          open_mock.call_args_list)
+                         [call for call in open_mock.call_args_list if
+                          call == mock.call('tempfile', 'wb') or call == mock.call('tempfile', 'rb')])
         os_mock.remove.assert_called_once_with('tempfile')
