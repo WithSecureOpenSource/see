@@ -45,7 +45,7 @@ class SeeContextFactoriesTest(unittest.TestCase):
 
 class SeeContextTest(unittest.TestCase):
     def setUp(self):
-        self.resources = mock.Mock()
+        self.resources = mock.MagicMock()
         self.context = context.SeeContext('foo', self.resources)
         self.hook = TestHook(HookParameters('foo', {}, self.context))
 
@@ -79,16 +79,20 @@ class SeeContextTest(unittest.TestCase):
                     'type': 0,
                     'addr': '0.0.0.0'}],
                 'hwaddr': '00:00:00:00:00:00'}}
+        # libvirt < 1.2.6
+        self.context.network.DHCPLeases.return_value = [{
+            'type': 0,
+            'ipaddr': '0.0.0.0',
+            'mac': '00:00:00:00:00:00'}]
 
         self.assertEqual(self.context.ip4_address, '0.0.0.0')
-        self.assertEqual(self.context._ip4_address, '0.0.0.0')
 
     def test_ip4_addr_old_libvirt(self):
         """IP address is set if not present (libvirt < 1.3.0)."""
         self.context._mac_address = "00:00:00:00:00:00"
         self.context.domain.interfaceAddresses.side_effect = AttributeError()
         self.context.network.DHCPLeases.return_value = [{
-            'type':0,
+            'type': 0,
             'ipaddr': '0.0.0.0',
             'mac': '00:00:00:00:00:00'}]
 
@@ -127,9 +131,13 @@ class SeeContextTest(unittest.TestCase):
                     'type': 1,
                     'addr': '::'}],
                 'hwaddr': '00:00:00:00:00:00'}}
+        # libvirt < 1.2.6
+        self.context.network.DHCPLeases.return_value = [{
+            'type': 1,
+            'ipaddr': '::',
+            'mac': '00:00:00:00:00:00'}]
 
         self.assertEqual(self.context.ip6_address, '::')
-        self.assertEqual(self.context._ip6_address, '::')
 
     def test_ip6_addr_old_libvirt(self):
         """IP address is set if not present (libvirt < 1.3.0)."""

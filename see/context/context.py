@@ -13,9 +13,10 @@
 # permissions and limitations under the License.
 
 import time
-import libvirt
 from threading import Lock
 import xml.etree.ElementTree as etree
+
+import libvirt
 
 from see.interfaces import Context
 from see.environment import load_configuration
@@ -359,3 +360,9 @@ def interface_lookup(interfaces, hwaddr, address_type):
             for address in interface.get('addrs'):
                 if address.get('type') == address_type:
                     return address.get('addr')
+
+
+# libvirt < 1.2.6
+if not hasattr(libvirt, 'VIR_IP_ADDR_TYPE_IPV4'):
+    libvirt.VIR_IP_ADDR_TYPE_IPV4 = 0
+    libvirt.VIR_IP_ADDR_TYPE_IPV6 = 1
