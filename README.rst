@@ -2,7 +2,7 @@ Sandboxed Execution Environment
 ===============================
 
 :Source: https://github.com/F-Secure/see
-:Documentation: http://see.readthedocs.io
+:Documentation: https://see.readthedocs.io
 :Download: https://pypi.python.org/pypi/python-see
 
 |travis badge| |docs badge|
