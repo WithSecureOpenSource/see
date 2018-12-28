@@ -9,13 +9,7 @@ matrix:
       python: 2.7
     - os: linux
       sudo: required
-      python: 3.4
-    - os: linux
-      sudo: required
       python: 3.5
-    - os: linux
-      sudo: required
-      python: 3.6
 install:
   - sudo apt update
   - sudo apt install python-ipaddress python-libvirt python3-libvirt
