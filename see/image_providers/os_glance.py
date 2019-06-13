@@ -19,7 +19,9 @@ by name or UUID; if name is requested the latest matching image is retrieved.
 
 provider_parameters:
     target_path (str): Absolute path where to download the image. If target_path
-                       is a directory, the image's UUID will be used as filename.
+                       is an existing file, it will be overwritten if the image
+                       is newer. Otherwise target_path is understood to be a
+                       directory and the image's UUID will be used as filename.
     glance_url (str):  The URL of the OpenStack Glance service to query for the
                        images.
     os_auth (dict):    A dictionary with OpenStack authentication parameters as
@@ -82,11 +84,13 @@ class GlanceProvider(ImageProvider):
                 self.configuration['target_path'])) >
                 datetime.strptime(metadata.updated_at, "%Y-%m-%dT%H:%M:%SZ")):
             return self.configuration['target_path']
-
-        target = ('/'.join((self.configuration['target_path'].rstrip('/'),
-                            metadata.id))
-                  if os.path.isdir(self.configuration['target_path'])
-                  else self.configuration['target_path'])
+        
+        target = (self.configuration['target_path']
+                  if os.path.isfile(self.configuration['target_path'])
+                  else '/'.join((self.configuration['target_path'].rstrip('/'),
+                                 metadata.id)))
+        os.makedirs(os.path.dirname(os.path.realpath(target)))
+                
         self._download_image(metadata, target)
         return target
 
