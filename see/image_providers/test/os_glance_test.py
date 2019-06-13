@@ -105,6 +105,30 @@ class ImageTest(unittest.TestCase):
         expected_image_path = self.config['disk']['image']['provider_configuration']['target_path'] + '/3'
         assert resources.provider_image == expected_image_path
 
+    @mock.patch('see.image_providers.os_glance.tempfile')
+    @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
+    @mock.patch('see.image_providers.os_glance.hashlib')
+    def test_image_unavailable_target_does_not_exist(self, hashlib_mock, open_mock, temp_mock, glance_mock, os_mock, _):
+        glance_mock.images.list.return_value = [self.wrongimage, self.image2]
+
+        md5 = mock.MagicMock()
+        md5.hexdigest.return_value = '2222'
+        hashlib_mock.md5.return_value = md5
+
+        os_mock.path.exists.return_value = False
+        os_mock.path.isfile.return_value = False
+        os_mock.path.getmtime.return_value = 0
+        temp_mock.mkstemp.return_value = (0, 'tempfile')
+
+        resources = Resources('foo', self.config)
+        expected_image_path = self.config['disk']['image']['provider_configuration']['target_path'] + '/2'
+        assert resources.provider_image == expected_image_path
+        glance_mock.images.data.assert_called_with('2')
+        self.assertEqual([mock.call('tempfile', 'wb'),
+                          mock.call('tempfile', 'rb')],
+                         open_mock.call_args_list)
+        os_mock.remove.assert_not_called()
+
     def test_image_unavailable_target_is_dir_no_cached(self, glance_mock, os_mock, _):
         glance_mock.images.list.return_value = [self.wrongimage, self.image3]
 
@@ -130,7 +154,6 @@ class ImageTest(unittest.TestCase):
 
         os_mock.path.exists.return_value = True
         os_mock.path.isfile.return_value = True
-        os_mock.path.isdir.return_value = False
         os_mock.path.getmtime.return_value = 0
         temp_mock.mkstemp.return_value = (0, 'tempfile')
 
@@ -156,7 +179,6 @@ class ImageTest(unittest.TestCase):
 
         os_mock.path.exists.return_value = True
         os_mock.path.isfile.return_value = False
-        os_mock.path.isdir.return_value = True
         temp_mock.mkstemp.return_value = (0, 'tempfile')
 
         resources = Resources('foo', self.config)
@@ -181,7 +203,6 @@ class ImageTest(unittest.TestCase):
 
         os_mock.path.exists.return_value = True
         os_mock.path.isfile.return_value = True
-        os_mock.path.isdir.return_value = False
         os_mock.path.getmtime.return_value = 0
         temp_mock.mkstemp.return_value = (0, 'tempfile')
 
