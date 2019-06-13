@@ -22,8 +22,6 @@ provider_parameters:
                        is an existing file, it will be overwritten if the image
                        is newer. Otherwise target_path is understood to be a
                        directory and the image's UUID will be used as filename.
-    glance_url (str):  The URL of the OpenStack Glance service to query for the
-                       images.
     os_auth (dict):    A dictionary with OpenStack authentication parameters as
                        needed by OpenStack's Keystone client.
 
