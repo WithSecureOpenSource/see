@@ -22,8 +22,6 @@ provider_parameters:
                        is an existing file, it will be overwritten if the image
                        is newer. Otherwise target_path is understood to be a
                        directory and the image's UUID will be used as filename.
-    glance_url (str):  The URL of the OpenStack Glance service to query for the
-                       images.
     os_auth (dict):    A dictionary with OpenStack authentication parameters as
                        needed by OpenStack's Keystone client.
 
@@ -103,15 +101,15 @@ class GlanceProvider(ImageProvider):
     def keystone_client(self):
         if self._keystone_client is None:
             from keystoneclient.client import Client as Kclient
-            self._keystone_client = Kclient(self.configuration['os_auth'])
+            self._keystone_client = Kclient(**self.configuration['os_auth'])
         return self._keystone_client
 
     @property
     def glance_client(self):
         if self._glance_client is None:
             from glanceclient.v2.client import Client as Gclient
-            self._glance_client = Gclient(
-                self.configuration['glance_url'], token=self._token)
+            self._glance_client = Gclient(self.keystone_client.service_catalog.url_for(service_type='image'),
+                                          token=self._token, **self.configuration['os_auth'])
         return self._glance_client
 
     def _find_potentials(self):
