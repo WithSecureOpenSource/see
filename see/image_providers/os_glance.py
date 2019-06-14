@@ -76,19 +76,19 @@ class GlanceProvider(ImageProvider):
             raise
 
         if (os.path.exists(self.configuration['target_path']) and
-            os.path.isfile(os.path.realpath(
-                self.configuration['target_path'])) and
-            datetime.fromtimestamp(os.path.getmtime(
-                self.configuration['target_path'])) >
+                os.path.isfile(os.path.realpath(
+                    self.configuration['target_path'])) and
+                datetime.fromtimestamp(os.path.getmtime(
+                    self.configuration['target_path'])) >
                 datetime.strptime(metadata.updated_at, "%Y-%m-%dT%H:%M:%SZ")):
             return self.configuration['target_path']
-        
+
         target = (self.configuration['target_path']
                   if os.path.isfile(self.configuration['target_path'])
                   else '/'.join((self.configuration['target_path'].rstrip('/'),
                                  metadata.id)))
         os.makedirs(os.path.dirname(os.path.realpath(target)))
-                
+
         self._download_image(metadata, target)
         return target
 
