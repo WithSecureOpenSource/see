@@ -24,6 +24,8 @@ provider_parameters:
                        directory and the image's UUID will be used as filename.
     os_auth (dict):    A dictionary with OpenStack authentication parameters as
                        needed by OpenStack's Keystone client.
+    session (dict):    A dictionary with OpenStack Session parameters. Allows
+                       authentication to Keystone over TLS.
 
 """
 
