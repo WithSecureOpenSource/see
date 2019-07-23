@@ -24,6 +24,8 @@ provider_parameters:
                        directory and the image's UUID will be used as filename.
     os_auth (dict):    A dictionary with OpenStack authentication parameters as
                        needed by OpenStack's Keystone client.
+    session (dict):    A dictionary with OpenStack Session parameters. Allows
+                       authentication to Keystone over TLS.
 
 """
 
@@ -55,7 +57,7 @@ class GlanceProvider(ImageProvider):
 
     def __init__(self, parameters):
         super(GlanceProvider, self).__init__(parameters)
-        self._keystone_client = None
+        self._os_session = None
         self._glance_client = None
 
     @property
@@ -94,22 +96,33 @@ class GlanceProvider(ImageProvider):
 
     @property
     def _token(self):
-        self.keystone_client.authenticate()
-        return self.keystone_client.get_token(self.keystone_client.session)
+        return self.os_session.get_token()
 
     @property
-    def keystone_client(self):
-        if self._keystone_client is None:
-            from keystoneclient.client import Client as Kclient
-            self._keystone_client = Kclient(**self.configuration['os_auth'])
-        return self._keystone_client
+    def os_session(self):
+        if self._os_session is None:
+            from keystoneauth1.identity import v3
+            from keystoneauth1.session import Session
+
+            self._os_session = Session(auth=v3.Password(**self.configuration['os_auth']),
+                                       verify=self.configuration['session'].get('cacert', False),
+                                       cert=self.configuration['session'].get('cert'))
+        return self._os_session
 
     @property
     def glance_client(self):
         if self._glance_client is None:
             from glanceclient.v2.client import Client as Gclient
-            self._glance_client = Gclient(self.keystone_client.service_catalog.url_for(service_type='image'),
-                                          token=self._token, **self.configuration['os_auth'])
+            glance_endpoints = self.os_session.get('/v3/users',
+                                                   endpoint_filter={
+                                                       'service_type': 'image',
+                                                       'interface': 'public'
+                                                   }).json()
+            glance_current_version = next((version for version in glance_endpoints.get('versions')
+                                           if version['status'] == 'CURRENT'), None)
+            glance_url = glance_current_version.get('links')[0]['href']
+            self._glance_client = Gclient(glance_url, token=self._token,
+                                          **self.configuration['os_auth'])
         return self._glance_client
 
     def _find_potentials(self):

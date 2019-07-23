@@ -11,7 +11,7 @@ except NameError:
     FileNotFoundError = IOError
 
 
-@mock.patch('see.image_providers.GlanceProvider.keystone_client')
+@mock.patch('see.image_providers.GlanceProvider.os_session')
 @mock.patch('see.image_providers.os_glance.os')
 @mock.patch('see.image_providers.GlanceProvider.glance_client')
 class ImageTest(unittest.TestCase):
