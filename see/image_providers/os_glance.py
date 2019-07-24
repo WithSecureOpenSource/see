@@ -29,7 +29,6 @@ provider_parameters:
 
 """
 
-import os
 import hashlib
 import tempfile
 
@@ -78,16 +77,16 @@ class GlanceProvider(ImageProvider):
 
         if (Path(self.configuration['path']).exists() and
                 Path(self.configuration['path']).is_file() and
-                datetime.fromtimestamp(os.path.getctime(
-                    self.configuration['path'])) >
+                datetime.fromtimestamp(Path(
+                    self.configuration['path']).stat().st_ctime) >
                 datetime.strptime(metadata.updated_at, "%Y-%m-%dT%H:%M:%SZ")):
             return self.configuration['path']
 
         target = (self.configuration['path']
-                  if os.path.isfile(self.configuration['path'])
-                  else '/'.join((self.configuration['path'].rstrip('/'),
-                                 metadata.id)))
-        os.makedirs(os.path.dirname(os.path.realpath(target)))
+                  if Path(self.configuration['path']).is_file()
+                  else str(Path(self.configuration['path'], metadata.id)))
+
+        Path(Path(target).parent).mkdir(parents=True)
 
         self._download_image(metadata, target)
         return target

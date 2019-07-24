@@ -12,7 +12,7 @@ except NameError:
 
 
 @mock.patch('see.image_providers.GlanceProvider.os_session')
-@mock.patch('see.image_providers.os_glance.os')
+@mock.patch('see.image_providers.os_glance.pathlib')
 @mock.patch('see.image_providers.GlanceProvider.glance_client')
 class ImageTest(unittest.TestCase):
     if sys.version_info.major >= 3:
@@ -72,7 +72,7 @@ class ImageTest(unittest.TestCase):
         os_mock.path.getmtime.return_value = 32503680000.0  # Jan 1st, 3000
 
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['target_path']
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path']
 
         assert resources.provider_image == expected_image_path
         glance_mock.images.data.assert_not_called()
@@ -91,7 +91,7 @@ class ImageTest(unittest.TestCase):
         os_mock.path.exists.return_value = True
         os_mock.path.isfile.return_value = True
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['target_path']
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path']
         assert resources.provider_image == expected_image_path
 
     def test_image_unavailable_target_is_dir(self, glance_mock, os_mock, _):
@@ -101,7 +101,7 @@ class ImageTest(unittest.TestCase):
         os_mock.path.isfile.return_value = False
         os_mock.path.join = os.path.join
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['target_path'] + '/3'
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/3'
         assert resources.provider_image == expected_image_path
 
     @mock.patch('see.image_providers.os_glance.tempfile')
@@ -120,7 +120,7 @@ class ImageTest(unittest.TestCase):
         temp_mock.mkstemp.return_value = (0, 'tempfile')
 
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['target_path'] + '/2'
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/2'
         assert resources.provider_image == expected_image_path
         glance_mock.images.data.assert_called_with('2')
         self.assertEqual([mock.call('tempfile', 'wb'),
@@ -157,7 +157,7 @@ class ImageTest(unittest.TestCase):
         temp_mock.mkstemp.return_value = (0, 'tempfile')
 
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['target_path']
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path']
 
         assert resources.provider_image == expected_image_path
         glance_mock.images.data.assert_called_with('1')
@@ -181,7 +181,7 @@ class ImageTest(unittest.TestCase):
         temp_mock.mkstemp.return_value = (0, 'tempfile')
 
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['target_path'] + '/2'
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/2'
 
         assert resources.provider_image == expected_image_path
         glance_mock.images.data.assert_called_with('2')
@@ -206,7 +206,7 @@ class ImageTest(unittest.TestCase):
         temp_mock.mkstemp.return_value = (0, 'tempfile')
 
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['target_path']
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path']
 
         open_mock.reset_mock()
         with self.assertRaisesRegexp(RuntimeError, 'Checksum failure. File: '):

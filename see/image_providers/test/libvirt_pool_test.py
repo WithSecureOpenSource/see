@@ -48,7 +48,7 @@ class ImageTest(unittest.TestCase):
         expected_image_path = '%s%s' % (
             self.config['disk']['image'][
                 'provider_configuration']['storage_pool_path'],
-            self.config['disk']['image']['uri'])
+            self.config['disk']['image']['name'])
 
         assert expected_image_path == resources.provider_image
 
@@ -73,7 +73,7 @@ class ImageTest(unittest.TestCase):
         expected_image_path = '%s%s' % (
             self.config['disk']['image'][
                 'provider_configuration']['storage_pool_path'],
-            self.config['disk']['image']['uri'])
+            self.config['disk']['image']['name'])
 
         assert expected_image_path == resources.provider_image
 
@@ -82,5 +82,5 @@ class ImageTest(unittest.TestCase):
             mock.call.setAutostart(True),
             mock.call.create(),
             mock.call.refresh(),
-            mock.call.storageVolLookupByName(self.config['disk']['image']['uri'])
+            mock.call.storageVolLookupByName(self.config['disk']['image']['name'])
         ])
