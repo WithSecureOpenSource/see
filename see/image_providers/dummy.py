@@ -17,7 +17,7 @@ This provider does nothing but return the configured image URI string as is.
 
 """
 
-from pathlib import Path
+import os
 from see.interfaces import ImageProvider
 
 
@@ -28,4 +28,4 @@ class DummyProvider(ImageProvider):
 
     @property
     def image(self):
-        return str(Path(self.configuration.get('path'), self.name))
+        return os.path.join(self.configuration.get('path'), self.name)

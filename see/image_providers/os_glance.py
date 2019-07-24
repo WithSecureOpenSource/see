@@ -29,10 +29,10 @@ provider_parameters:
 
 """
 
+import os
 import hashlib
 import tempfile
 
-from pathlib import Path
 from datetime import datetime
 from see.interfaces import ImageProvider
 
@@ -65,28 +65,29 @@ class GlanceProvider(ImageProvider):
         try:
             metadata = self._retrieve_metadata()
         except FileNotFoundError:
-            if Path(self.configuration['path']).exists():
-                if Path(self.configuration['path']).is_file():
+            if os.path.exists(self.configuration['path']):
+                if os.path.isfile(os.path.realpath(self.configuration['path'])):
                     return self.configuration['path']
                 else:
                     for image in self._find_potentials():
-                        tgt = str(Path(self.configuration['path'], image.id))
-                        if Path(tgt).exists():
+                        tgt = os.path.join(self.configuration['path'], image.id)
+                        if os.path.exists(tgt):
                             return tgt
             raise
 
-        if (Path(self.configuration['path']).exists() and
-                Path(self.configuration['path']).is_file() and
-                datetime.fromtimestamp(Path(
-                    self.configuration['path']).stat().st_ctime) >
+        if (os.path.exists(self.configuration['path']) and
+                os.path.isfile(os.path.realpath(
+                    self.configuration['path'])) and
+                datetime.fromtimestamp(os.path.getmtime(
+                    self.configuration['path'])) >
                 datetime.strptime(metadata.updated_at, "%Y-%m-%dT%H:%M:%SZ")):
             return self.configuration['path']
 
         target = (self.configuration['path']
-                  if Path(self.configuration['path']).is_file()
-                  else str(Path(self.configuration['path'], metadata.id)))
+                  if os.path.isfile(self.configuration['path'])
+                  else os.path.join(self.configuration['path'], metadata.id))
 
-        Path(Path(target).parent).mkdir(parents=True)
+        os.makedirs(os.path.dirname(os.path.realpath(target)))
 
         self._download_image(metadata, target)
         return target
@@ -138,13 +139,14 @@ class GlanceProvider(ImageProvider):
             raise FileNotFoundError(self.name)
 
     def _download_image(self, img_metadata, target):
-        if not Path(target).exists():
+        if not os.path.exists(target):
             img_downloader = self.glance_client.images.data(img_metadata.id)
-            _, temp = tempfile.mkstemp(dir=Path(target).parent, suffix='.part')
+            _, temp = tempfile.mkstemp(dir=os.path.dirname(target),
+                                       suffix='.part')
             with open(temp, 'wb') as imagefile:
                 for chunk in img_downloader:
                     imagefile.write(chunk)
             if not verify_checksum(temp, img_metadata.checksum):
-                Path(temp).unlink()
+                os.remove(temp)
                 raise RuntimeError('Checksum failure. File: %s' % target)
-            Path(temp).rename(target)
+            os.rename(temp, target)

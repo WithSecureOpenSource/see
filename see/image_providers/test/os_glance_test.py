@@ -12,7 +12,7 @@ except NameError:
 
 
 @mock.patch('see.image_providers.GlanceProvider.os_session')
-@mock.patch('see.image_providers.os_glance.pathlib')
+@mock.patch('see.image_providers.os_glance.os')
 @mock.patch('see.image_providers.GlanceProvider.glance_client')
 class ImageTest(unittest.TestCase):
     if sys.version_info.major >= 3:
@@ -114,6 +114,7 @@ class ImageTest(unittest.TestCase):
         md5.hexdigest.return_value = '2222'
         hashlib_mock.md5.return_value = md5
 
+        os_mock.path.join = os.path.join
         os_mock.path.exists.return_value = False
         os_mock.path.isfile.return_value = False
         os_mock.path.getmtime.return_value = 0
@@ -151,7 +152,8 @@ class ImageTest(unittest.TestCase):
         md5.hexdigest.return_value = '1111'
         hashlib_mock.md5.return_value = md5
 
-        os_mock.path.exists.return_value = True
+        os_mock.path.join = os.path.join
+        os_mock.path.exists.side_effect = [True, False]
         os_mock.path.isfile.return_value = True
         os_mock.path.getmtime.return_value = 0
         temp_mock.mkstemp.return_value = (0, 'tempfile')
@@ -176,7 +178,8 @@ class ImageTest(unittest.TestCase):
         md5.hexdigest.return_value = '2222'
         hashlib_mock.md5.return_value = md5
 
-        os_mock.path.exists.return_value = True
+        os_mock.path.join = os.path.join
+        os_mock.path.exists.side_effect = [True, False]
         os_mock.path.isfile.return_value = False
         temp_mock.mkstemp.return_value = (0, 'tempfile')
 
@@ -200,7 +203,7 @@ class ImageTest(unittest.TestCase):
         md5.hexdigest.return_value = '1234'
         hashlib_mock.md5.return_value = md5
 
-        os_mock.path.exists.return_value = True
+        os_mock.path.exists.side_effect = [True, False]
         os_mock.path.isfile.return_value = True
         os_mock.path.getmtime.return_value = 0
         temp_mock.mkstemp.return_value = (0, 'tempfile')
