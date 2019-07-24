@@ -19,7 +19,7 @@ class ImageTest(unittest.TestCase):
         self.config = {
             'disk': {
                 'image': {
-                    'uri': '/foo/bar',
+                    'name': '/foo/bar',
                     'provider': 'see.image_providers.LibvirtPoolProvider',
                     'provider_configuration': {
                         'storage_pool_path': '/nowhere',

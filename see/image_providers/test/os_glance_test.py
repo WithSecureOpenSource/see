@@ -24,11 +24,10 @@ class ImageTest(unittest.TestCase):
         self.config = {
             'disk': {
                 'image': {
-                    'uri': 'TestImageName',
+                    'name': 'TestImageName',
                     'provider': 'see.image_providers.GlanceProvider',
                     'provider_configuration': {
-                        'target_path': '/foo/bar',
-                        'glance_url': '/glance/baz',
+                        'path': '/foo/bar',
                         'os_auth': {
                             'username': 'dummy',
                             'password': 'dmpwd'
