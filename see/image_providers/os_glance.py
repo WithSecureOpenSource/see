@@ -111,15 +111,8 @@ class GlanceProvider(ImageProvider):
     def glance_client(self):
         if self._glance_client is None:
             from glanceclient.v2.client import Client as Gclient
-            glance_endpoints = self.os_session.get('/v3/users',
-                                                   endpoint_filter={
-                                                       'service_type': 'image',
-                                                       'interface': 'public'
-                                                   }).json()
-            glance_current_version = next((version for version in glance_endpoints.get('versions')
-                                           if version['status'] == 'CURRENT'), None)
-            glance_url = glance_current_version.get('links')[0]['href']
-            self._glance_client = Gclient(glance_url, token=self._token,
+            self._glance_client = Gclient(self.os_session.get_endpoint(service_type='image'),
+                                          token=self._token,
                                           **self.configuration['os_auth'])
         return self._glance_client
 
