@@ -50,7 +50,7 @@ class LibvirtPoolProvider(ImageProvider):
     @property
     def image(self):
         path = "%s/%s" % (self.configuration.get(
-            'storage_pool_path').rstrip('/'), self.uri.lstrip('/'))
+            'storage_pool_path').rstrip('/'), self.name.lstrip('/'))
 
         if not os.path.exists(path):
             raise FileNotFoundError(path)
@@ -67,4 +67,4 @@ class LibvirtPoolProvider(ImageProvider):
             pool.setAutostart(True)
             pool.create()
             pool.refresh()
-            return pool.storageVolLookupByName(self.uri).path()
+            return pool.storageVolLookupByName(self.name).path()

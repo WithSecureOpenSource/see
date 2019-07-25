@@ -335,8 +335,9 @@ class ResourcesTest(unittest.TestCase):
         """QEMU Resources allocator with no extra value and dummy image provider."""
         network_mock.lookup.return_value = None
         resources = qemu.QEMUResources('foo', {'domain': 'bar',
-                                               'disk': {'image': {'uri': '/foo/bar',
-                                                                  'provider': 'see.image_providers.DummyProvider'}}})
+                                               'disk': {'image': {'name': 'bar',
+                                                                  'provider': 'see.image_providers.DummyProvider',
+                                                                  'provider_configuration': {'path': '/foo'}}}})
         resources.allocate()
         libvirt_mock.open.assert_called_with('qemu:///system')
         create_mock.assert_called_with(resources.hypervisor, 'foo', 'bar',

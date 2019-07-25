@@ -43,7 +43,7 @@ class ImageProvider(object):
     def __init__(self, parameters):
         super(ImageProvider, self).__init__()
         self.configuration = parameters.get('provider_configuration')
-        self.uri = parameters.get('uri')
+        self.name = parameters.get('name')
         self.logger = logging.getLogger(
             '%s.%s' % (self.__module__, self.__class__.__name__))
 

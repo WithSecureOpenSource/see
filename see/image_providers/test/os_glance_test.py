@@ -24,11 +24,10 @@ class ImageTest(unittest.TestCase):
         self.config = {
             'disk': {
                 'image': {
-                    'uri': 'TestImageName',
+                    'name': 'TestImageName',
                     'provider': 'see.image_providers.GlanceProvider',
                     'provider_configuration': {
-                        'target_path': '/foo/bar',
-                        'glance_url': '/glance/baz',
+                        'path': '/foo/bar',
                         'os_auth': {
                             'username': 'dummy',
                             'password': 'dmpwd'
@@ -73,7 +72,7 @@ class ImageTest(unittest.TestCase):
         os_mock.path.getmtime.return_value = 32503680000.0  # Jan 1st, 3000
 
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['target_path']
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path']
 
         assert resources.provider_image == expected_image_path
         glance_mock.images.data.assert_not_called()
@@ -92,7 +91,7 @@ class ImageTest(unittest.TestCase):
         os_mock.path.exists.return_value = True
         os_mock.path.isfile.return_value = True
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['target_path']
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path']
         assert resources.provider_image == expected_image_path
 
     def test_image_unavailable_target_is_dir(self, glance_mock, os_mock, _):
@@ -102,7 +101,7 @@ class ImageTest(unittest.TestCase):
         os_mock.path.isfile.return_value = False
         os_mock.path.join = os.path.join
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['target_path'] + '/3'
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/3'
         assert resources.provider_image == expected_image_path
 
     @mock.patch('see.image_providers.os_glance.tempfile')
@@ -115,13 +114,14 @@ class ImageTest(unittest.TestCase):
         md5.hexdigest.return_value = '2222'
         hashlib_mock.md5.return_value = md5
 
+        os_mock.path.join = os.path.join
         os_mock.path.exists.return_value = False
         os_mock.path.isfile.return_value = False
         os_mock.path.getmtime.return_value = 0
         temp_mock.mkstemp.return_value = (0, 'tempfile')
 
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['target_path'] + '/2'
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/2'
         assert resources.provider_image == expected_image_path
         glance_mock.images.data.assert_called_with('2')
         self.assertEqual([mock.call('tempfile', 'wb'),
@@ -152,13 +152,14 @@ class ImageTest(unittest.TestCase):
         md5.hexdigest.return_value = '1111'
         hashlib_mock.md5.return_value = md5
 
-        os_mock.path.exists.return_value = True
+        os_mock.path.join = os.path.join
+        os_mock.path.exists.side_effect = [True, False]
         os_mock.path.isfile.return_value = True
         os_mock.path.getmtime.return_value = 0
         temp_mock.mkstemp.return_value = (0, 'tempfile')
 
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['target_path']
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path']
 
         assert resources.provider_image == expected_image_path
         glance_mock.images.data.assert_called_with('1')
@@ -177,12 +178,13 @@ class ImageTest(unittest.TestCase):
         md5.hexdigest.return_value = '2222'
         hashlib_mock.md5.return_value = md5
 
-        os_mock.path.exists.return_value = True
+        os_mock.path.join = os.path.join
+        os_mock.path.exists.side_effect = [True, False]
         os_mock.path.isfile.return_value = False
         temp_mock.mkstemp.return_value = (0, 'tempfile')
 
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['target_path'] + '/2'
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/2'
 
         assert resources.provider_image == expected_image_path
         glance_mock.images.data.assert_called_with('2')
@@ -201,13 +203,13 @@ class ImageTest(unittest.TestCase):
         md5.hexdigest.return_value = '1234'
         hashlib_mock.md5.return_value = md5
 
-        os_mock.path.exists.return_value = True
+        os_mock.path.exists.side_effect = [True, False]
         os_mock.path.isfile.return_value = True
         os_mock.path.getmtime.return_value = 0
         temp_mock.mkstemp.return_value = (0, 'tempfile')
 
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['target_path']
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path']
 
         open_mock.reset_mock()
         with self.assertRaisesRegexp(RuntimeError, 'Checksum failure. File: '):
