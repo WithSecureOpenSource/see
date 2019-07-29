@@ -87,7 +87,7 @@ class GlanceProvider(ImageProvider):
                   if os.path.isfile(self.configuration['path'])
                   else os.path.join(self.configuration['path'], metadata.id))
 
-        os.makedirs(os.path.dirname(os.path.realpath(target)))
+        os.makedirs(os.path.dirname(os.path.realpath(target)), exist_ok=True)
 
         self._download_image(metadata, target)
         return target
