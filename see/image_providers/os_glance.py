@@ -93,10 +93,6 @@ class GlanceProvider(ImageProvider):
         return target
 
     @property
-    def _token(self):
-        return self.os_session.get_token()
-
-    @property
     def os_session(self):
         if self._os_session is None:
             from keystoneauth1.identity import v3
@@ -111,9 +107,7 @@ class GlanceProvider(ImageProvider):
     def glance_client(self):
         if self._glance_client is None:
             from glanceclient.v2.client import Client as Gclient
-            self._glance_client = Gclient(self.os_session.get_endpoint(service_type='image'),
-                                          token=self._token,
-                                          **self.configuration['os_auth'])
+            self._glance_client = Gclient(session=self.os_session)
         return self._glance_client
 
     def _find_potentials(self):
