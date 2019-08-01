@@ -87,14 +87,10 @@ class GlanceProvider(ImageProvider):
                   if os.path.isfile(self.configuration['path'])
                   else os.path.join(self.configuration['path'], metadata.id))
 
-        os.makedirs(os.path.dirname(os.path.realpath(target)))
+        os.makedirs(os.path.dirname(os.path.realpath(target)), exist_ok=True)
 
         self._download_image(metadata, target)
         return target
-
-    @property
-    def _token(self):
-        return self.os_session.get_token()
 
     @property
     def os_session(self):
@@ -111,9 +107,7 @@ class GlanceProvider(ImageProvider):
     def glance_client(self):
         if self._glance_client is None:
             from glanceclient.v2.client import Client as Gclient
-            self._glance_client = Gclient(self.os_session.get_endpoint(service_type='image'),
-                                          token=self._token,
-                                          **self.configuration['os_auth'])
+            self._glance_client = Gclient(session=self.os_session)
         return self._glance_client
 
     def _find_potentials(self):
