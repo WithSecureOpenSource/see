@@ -124,8 +124,8 @@ class ImageTest(unittest.TestCase):
         expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/2'
         assert resources.provider_image == expected_image_path
         glance_mock.images.data.assert_called_with('2')
-        self.assertEqual([mock.call('tempfile', 'wb'),
-                          mock.call('tempfile', 'rb')],
+        self.assertEqual([mock.call('/foo/bar/2.part', 'wb'),
+                          mock.call('/foo/bar/2.part', 'rb')],
                          open_mock.call_args_list)
         os_mock.remove.assert_not_called()
 
@@ -153,7 +153,7 @@ class ImageTest(unittest.TestCase):
         hashlib_mock.md5.return_value = md5
 
         os_mock.path.join = os.path.join
-        os_mock.path.exists.side_effect = [True, False]
+        os_mock.path.exists.side_effect = [True, False, False]
         os_mock.path.isfile.return_value = True
         os_mock.path.getmtime.return_value = 0
         temp_mock.mkstemp.return_value = (0, 'tempfile')
@@ -163,9 +163,32 @@ class ImageTest(unittest.TestCase):
 
         assert resources.provider_image == expected_image_path
         glance_mock.images.data.assert_called_with('1')
-        self.assertEqual([mock.call('tempfile', 'wb'),
-                          mock.call('tempfile', 'rb')],
+        self.assertEqual([mock.call('/foo/bar.part', 'wb'),
+                          mock.call('/foo/bar.part', 'rb')],
                          open_mock.call_args_list)
+        os_mock.remove.assert_not_called()
+
+    @mock.patch('see.image_providers.os_glance.tempfile')
+    @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
+    @mock.patch('see.image_providers.os_glance.hashlib')
+    def test_same_name_image_is_downloading(self, hashlib_mock, open_mock, temp_mock, glance_mock, os_mock, _):
+        glance_mock.images.list.return_value = [self.image1, self.image2]
+
+        md5 = mock.MagicMock()
+        md5.hexdigest.return_value = '2222'
+        hashlib_mock.md5.return_value = md5
+
+        os_mock.path.join = os.path.join
+        os_mock.path.exists.side_effect = [True, False, True]
+        os_mock.path.isfile.return_value = False
+        temp_mock.mkstemp.return_value = (0, 'tempfile')
+
+        resources = Resources('foo', self.config)
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/2'
+
+        assert resources.provider_image == expected_image_path
+        glance_mock.images.data.assert_not_called()
+        open_mock.assert_not_called()
         os_mock.remove.assert_not_called()
 
     @mock.patch('see.image_providers.os_glance.tempfile')
@@ -179,7 +202,7 @@ class ImageTest(unittest.TestCase):
         hashlib_mock.md5.return_value = md5
 
         os_mock.path.join = os.path.join
-        os_mock.path.exists.side_effect = [True, False]
+        os_mock.path.exists.side_effect = [True, False, False]
         os_mock.path.isfile.return_value = False
         temp_mock.mkstemp.return_value = (0, 'tempfile')
 
@@ -188,8 +211,8 @@ class ImageTest(unittest.TestCase):
 
         assert resources.provider_image == expected_image_path
         glance_mock.images.data.assert_called_with('2')
-        self.assertEqual([mock.call('tempfile', 'wb'),
-                          mock.call('tempfile', 'rb')],
+        self.assertEqual([mock.call('/foo/bar/2.part', 'wb'),
+                          mock.call('/foo/bar/2.part', 'rb')],
                          open_mock.call_args_list)
         os_mock.remove.assert_not_called()
 
@@ -203,7 +226,7 @@ class ImageTest(unittest.TestCase):
         md5.hexdigest.return_value = '1234'
         hashlib_mock.md5.return_value = md5
 
-        os_mock.path.exists.side_effect = [True, False]
+        os_mock.path.exists.side_effect = [True, False, False]
         os_mock.path.isfile.return_value = True
         os_mock.path.getmtime.return_value = 0
         temp_mock.mkstemp.return_value = (0, 'tempfile')
@@ -217,8 +240,9 @@ class ImageTest(unittest.TestCase):
 
         glance_mock.images.data.assert_called_with('1')
 
-        self.assertEqual([mock.call('tempfile', 'wb'),
-                          mock.call('tempfile', 'rb')],
+        self.assertEqual([mock.call('/foo/bar.part', 'wb'),
+                          mock.call('/foo/bar.part', 'rb')],
                          [call for call in open_mock.call_args_list if
-                          call == mock.call('tempfile', 'wb') or call == mock.call('tempfile', 'rb')])
-        os_mock.remove.assert_called_once_with('tempfile')
+                          call == mock.call('/foo/bar.part', 'wb') or
+                          call == mock.call('/foo/bar.part', 'rb')])
+        os_mock.remove.assert_called_once_with('/foo/bar.part')

@@ -126,14 +126,13 @@ class GlanceProvider(ImageProvider):
             raise FileNotFoundError(self.name)
 
     def _download_image(self, img_metadata, target):
-        if not os.path.exists(target):
+        partfile = '{}.part'.format(target)
+        if not os.path.exists(target) and not os.path.exists(partfile):
             img_downloader = self.glance_client.images.data(img_metadata.id)
-            _, temp = tempfile.mkstemp(dir=os.path.dirname(target),
-                                       suffix='.part')
-            with open(temp, 'wb') as imagefile:
+            with open(partfile, 'wb') as imagefile:
                 for chunk in img_downloader:
                     imagefile.write(chunk)
-            if not verify_checksum(temp, img_metadata.checksum):
-                os.remove(temp)
+            if not verify_checksum(partfile, img_metadata.checksum):
+                os.remove(partfile)
                 raise RuntimeError('Checksum failure. File: %s' % target)
-            os.rename(temp, target)
+            os.rename(partfile, target)
