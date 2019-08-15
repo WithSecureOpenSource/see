@@ -89,8 +89,7 @@ class GlanceProvider(ImageProvider):
 
         os.makedirs(os.path.dirname(os.path.realpath(target)), exist_ok=True)
 
-        self._download_image(metadata, target)
-        return target
+        return self._download_image(metadata, target)
 
     @property
     def os_session(self):
@@ -126,14 +125,24 @@ class GlanceProvider(ImageProvider):
             raise FileNotFoundError(self.name)
 
     def _download_image(self, img_metadata, target):
+        partfile = '{}.part'.format(target)
+        if os.path.exists(partfile):
+            for image in sorted([img for img in self.glance_client.images.list()
+                                 if (img.id == self.name or
+                                     img.name == self.name)
+                                 and img.status == 'active'],
+                                key=lambda x: x.updated_at, reverse=True):
+                newtarget = os.path.join(os.path.dirname(target), image.id)
+                if os.path.exists(newtarget):
+                    return newtarget
+            raise FileNotFoundError()
         if not os.path.exists(target):
             img_downloader = self.glance_client.images.data(img_metadata.id)
-            _, temp = tempfile.mkstemp(dir=os.path.dirname(target),
-                                       suffix='.part')
-            with open(temp, 'wb') as imagefile:
+            with open(partfile, 'wb') as imagefile:
                 for chunk in img_downloader:
                     imagefile.write(chunk)
-            if not verify_checksum(temp, img_metadata.checksum):
-                os.remove(temp)
+            if not verify_checksum(partfile, img_metadata.checksum):
+                os.remove(partfile)
                 raise RuntimeError('Checksum failure. File: %s' % target)
-            os.rename(temp, target)
+            os.rename(partfile, target)
+        return target
