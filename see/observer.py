@@ -47,8 +47,47 @@ class Observer(Observatory):
 
 
 class Observable(Observatory):
+    class HashedSemaphore(object):
+        """A keyed counting semaphore.
+
+        It keeps a hash of Events that subscribers can acquire/release as needed
+        during their own handlers' execution.
+        """
+
+        def __init__(self):
+            self._hash = {}
+
+        def acquire(self, event):
+            """
+            Increases the semaphore's usage counter.
+
+            @param event: (str|see.Event) event to track.
+            """
+            if event in self._hash:
+                self._hash[event] += 1
+            else:
+                self._hash[event] = 1
+
+        def release(self, event):
+            """
+            Decreases the semaphore's usage counter.
+
+            @param event: (str|see.Event) event to track.
+            """
+            if self._hash[event] > 0:
+                self._hash[event] -= 1
+
+        def available(self, event):
+            """
+            Indicates whether a given event is free of usage flags.
+
+            @param event: (str|see.Event) event to query.
+            """
+            return not self._hash[event] > 0
+
     def __init__(self, identifier):
         super(Observable, self).__init__(identifier)
+        self.signal_semaphore = self.HashedSemaphore()
         self._handlers = Handlers(defaultdict(list), defaultdict(list), RLock())
 
     def subscribe(self, event, handler):

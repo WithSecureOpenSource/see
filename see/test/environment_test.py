@@ -3,7 +3,7 @@ import unittest
 import threading
 
 from see import Environment, Hook, Context
-
+from see.helpers import handler
 
 class EnvironmentTest(unittest.TestCase):
     def setUp(self):
@@ -114,6 +114,12 @@ class EnvironmentTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             hook.context.unsubscribe('event1', hook.cleanup)
 
+    def test_decorated_handler(self):
+        self.environment.context.trigger('decorated')
+        self.assertTrue(self.environment._hookmanager.hooks[0].called1)
+        self.assertTrue(self.environment.context.signal_semaphore.available('decorated'))
+        self.assertEqual(self.environment.context.signal_semaphore._hash['decorated'], 0)
+
 
 def context_factory(identifier):
     return Context(identifier)
@@ -131,10 +137,15 @@ class TestHook(Hook):
         self.context.subscribe('event2', self.handler2)
         self.context.subscribe('cascade_sync', self.cascade_handler)
         self.context.subscribe('cascade_async', self.cascade_async_handler)
+        self.context.subscribe('decorated', self.decorated)
         self.called1 = False
         self.event_arg = None
         self.clean = False
         self.async_called = threading.Event()
+
+    @handler
+    def decorated(self, event):
+        self.called1 = True
 
     def handler1(self, event):
         self.called1 = True

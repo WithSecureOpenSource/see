@@ -15,6 +15,14 @@
 import inspect
 
 
+def handler(func):
+    def wrapper(self, event):
+        self.context.signal_semaphore.acquire(event)
+        func(self, event)
+        self.context.signal_semaphore.release(event)
+    return wrapper
+    
+
 def lookup_class(fully_qualified_name):
     """
     Given its fully qualified name, finds the desired class and imports it.
