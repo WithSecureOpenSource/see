@@ -5,6 +5,7 @@ import threading
 from see import Environment, Hook, Context
 from see.helpers import handler
 
+
 class EnvironmentTest(unittest.TestCase):
     def setUp(self):
         config = {'hooks': [{'name': 'see.test.environment_test.TestHook'},
