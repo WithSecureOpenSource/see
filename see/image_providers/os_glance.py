@@ -18,15 +18,17 @@ it doesn't already exist on the configured target path. Images can be requested
 by name or UUID; if name is requested the latest matching image is retrieved.
 
 provider_parameters:
-    path (str):     Absolute path where to download the image. If target_path
-                    is an existing file, it will be overwritten if the image
-                    is newer. Otherwise target_path is understood to be a
-                    directory and the image's UUID will be used as filename.
-    os_auth (dict): A dictionary with OpenStack authentication parameters as
-                    needed by OpenStack's Keystone client.
-    session (dict): A dictionary with OpenStack Session parameters. Allows
-                    authentication to Keystone over TLS.
-
+    path (str):          Absolute path where to download the image.
+                         If target_path is an existing file, it will be
+                         overwritten if the image is newer. Otherwise
+                         target_path is understood to be a directory and the
+                         image's UUID will be used as filename.
+    os_auth (dict):      A dictionary with OpenStack authentication parameters
+                         as needed by OpenStack's Keystone client.
+    session (dict):      A dictionary with OpenStack Session parameters. Allows
+                         authentication to Keystone over TLS.
+    libvirt_pool (dict): An optional dictionary with backing libvirt pool
+                         configuration.
 """
 
 import os
@@ -145,4 +147,12 @@ class GlanceProvider(ImageProvider):
                 os.remove(partfile)
                 raise RuntimeError('Checksum failure. File: %s' % target)
             os.rename(partfile, target)
+            if self.configuration.get('libvirt_pool'):
+                import libvirt
+                hypervisor = libvirt.open(
+                    self.configuration['libvirt_pool'].get('hypervisor',
+                                                           'qemu:///system'))
+                pool = hypervisor.storagePoolLookupByName(
+                    self.configuration['libvirt_pool']['name'])
+                pool.refresh()
         return target
