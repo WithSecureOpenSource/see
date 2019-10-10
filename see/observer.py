@@ -56,6 +56,7 @@ class Observable(Observatory):
 
         def __init__(self):
             self._hash = {}
+            self._lock = RLock()
 
         def acquire(self, event):
             """
@@ -63,10 +64,11 @@ class Observable(Observatory):
 
             @param event: (str|see.Event) event to track.
             """
-            if event in self._hash:
-                self._hash[event] += 1
-            else:
-                self._hash[event] = 1
+            with self._lock:
+                if event in self._hash:
+                    self._hash[event] += 1
+                else:
+                    self._hash[event] = 1
 
         def release(self, event):
             """
@@ -74,8 +76,9 @@ class Observable(Observatory):
 
             @param event: (str|see.Event) event to track.
             """
-            if self._hash[event] > 0:
-                self._hash[event] -= 1
+            with self._lock:
+                if self._hash[event] > 0:
+                    self._hash[event] -= 1
 
         def available(self, event):
             """
@@ -83,7 +86,9 @@ class Observable(Observatory):
 
             @param event: (str|see.Event) event to query.
             """
-            return not self._hash[event] > 0
+            with self._lock:
+                result = not self._hash[event] > 0
+            return result
 
     def __init__(self, identifier):
         super(Observable, self).__init__(identifier)
