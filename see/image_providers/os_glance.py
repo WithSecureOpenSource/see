@@ -112,16 +112,15 @@ class GlanceProvider(ImageProvider):
         return self._glance_client
 
     def _find_potentials(self):
-        return sorted([image for image in self.glance_client.images.list()
-                       if (image.id == self.name or image.name == self.name)
-                       and image.status != 'active'],
+        return sorted([image for image in self.glance_client.images.list(
+            page_size=2, filters={'name': self.name})
+                       if image.status != 'active'],
                       key=lambda x: x.updated_at, reverse=True)
 
     def _retrieve_metadata(self):
         try:
-            return sorted([image for image in self.glance_client.images.list()
-                           if (image.id == self.name or image.name == self.name)
-                           and image.status == 'active'],
+            return sorted([image for image in self.glance_client.images.list(
+                page_size=2, filters={'name': self.name, 'status': 'active'})],
                           key=lambda x: x.updated_at, reverse=True)[0]
         except IndexError:
             raise FileNotFoundError(self.name)
@@ -129,10 +128,9 @@ class GlanceProvider(ImageProvider):
     def _download_image(self, img_metadata, target):
         partfile = '{}.part'.format(target)
         if os.path.exists(partfile):
-            for image in sorted([img for img in self.glance_client.images.list()
-                                 if (img.id == self.name or
-                                     img.name == self.name)
-                                 and img.status == 'active'],
+            for image in sorted([img for img in self.glance_client.images.list(
+                    page_size=2, filters={'name': self.name,
+                                          'status': 'active'})],
                                 key=lambda x: x.updated_at, reverse=True):
                 newtarget = os.path.join(os.path.dirname(target), image.id)
                 if os.path.exists(newtarget):
