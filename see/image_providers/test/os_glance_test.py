@@ -95,7 +95,7 @@ class ImageTest(unittest.TestCase):
         assert resources.provider_image == expected_image_path
 
     def test_image_unavailable_target_is_dir(self, glance_mock, os_mock, _):
-        glance_mock.images.list.return_value = [self.wrongimage, self.image3]
+        glance_mock.images.list.return_value = [self.image3]
 
         os_mock.path.exists.return_value = True
         os_mock.path.isfile.return_value = False
@@ -108,7 +108,7 @@ class ImageTest(unittest.TestCase):
     @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
     @mock.patch('see.image_providers.os_glance.hashlib')
     def test_image_unavailable_target_does_not_exist(self, hashlib_mock, open_mock, temp_mock, glance_mock, os_mock, _):
-        glance_mock.images.list.return_value = [self.wrongimage, self.image2]
+        glance_mock.images.list.return_value = [self.image2]
 
         md5 = mock.MagicMock()
         md5.hexdigest.return_value = '2222'
@@ -130,7 +130,7 @@ class ImageTest(unittest.TestCase):
         os_mock.remove.assert_not_called()
 
     def test_image_unavailable_target_is_dir_no_cached(self, glance_mock, os_mock, _):
-        glance_mock.images.list.return_value = [self.wrongimage, self.image3]
+        glance_mock.images.list.return_value = [self.image3]
 
         os_mock.path.exists.side_effect = lambda x: {'/foo/bar/1': False,
                                                      '/foo/bar/3': False,
