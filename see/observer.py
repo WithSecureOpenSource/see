@@ -13,6 +13,7 @@
 # permissions and limitations under the License.
 
 import logging
+import time
 from threading import RLock, Thread
 from collections import defaultdict, namedtuple
 
@@ -54,6 +55,10 @@ class Observable(Observatory):
         during their own handlers' execution.
         """
 
+        SEMAPHORE_TIMEOUT = 2  # seconds
+        EventSemaphore = namedtuple('EventSemaphore', ('timeout',
+                                                       'counter'))
+
         def __init__(self):
             self._hash = {}
             self._lock = RLock()
@@ -66,9 +71,10 @@ class Observable(Observatory):
             """
             with self._lock:
                 if event in self._hash:
-                    self._hash[event] += 1
+                    self._hash[event].counter += 1
                 else:
-                    self._hash[event] = 1
+                    self._hash[event] = self.EventSemaphore(
+                        time.time() + self.SEMAPHORE_TIMEOUT, 1)
 
         def release(self, event):
             """
@@ -77,8 +83,10 @@ class Observable(Observatory):
             @param event: (str|see.Event) event to track.
             """
             with self._lock:
-                if self._hash[event] > 0:
-                    self._hash[event] -= 1
+                if self._hash[event].counter > 0:
+                    self._hash[event].counter -= 1
+                else:
+                    raise RuntimeError("Unexpected release call.")
 
         def available(self, event):
             """
@@ -87,7 +95,9 @@ class Observable(Observatory):
             @param event: (str|see.Event) event to query.
             """
             with self._lock:
-                result = not self._hash[event] > 0
+                result = True if event not in self._hash or (
+                    self._hash[event].counter == 0 and
+                    self._hash[event].timeout - time.time() < 0) else False
             return result
 
     def __init__(self, identifier):
