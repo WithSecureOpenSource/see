@@ -121,7 +121,7 @@ class EnvironmentTest(unittest.TestCase):
         self.assertFalse(self.environment.context.signal_semaphore.available('decorated'))
         time.sleep(2)  # Wait for semaphore timeout
         self.assertTrue(self.environment.context.signal_semaphore.available('decorated'))
-        self.assertEqual(self.environment.context.signal_semaphore._hash['decorated'], 0)
+        self.assertEqual(self.environment.context.signal_semaphore._hash['decorated']['counter'], 0)
 
 
 def context_factory(identifier):
