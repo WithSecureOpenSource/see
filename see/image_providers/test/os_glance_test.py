@@ -86,8 +86,10 @@ class ImageTest(unittest.TestCase):
             _ = resources.provider_image
 
     def test_image_unavailable_target_is_file(self, glance_mock, os_mock, _):
-        glance_mock.images.list.return_value = [self.wrongimage, self.image3]
+        glance_mock.images.list.return_value = []
 
+        os_mock.path.join = os.path.join
+        os_mock.path.dirname = os.path.dirname
         os_mock.path.exists.return_value = True
         os_mock.path.isfile.return_value = True
         resources = Resources('foo', self.config)
@@ -97,9 +99,10 @@ class ImageTest(unittest.TestCase):
     def test_image_unavailable_target_is_dir(self, glance_mock, os_mock, _):
         glance_mock.images.list.return_value = [self.image3]
 
+        os_mock.path.join = os.path.join
+        os_mock.path.dirname = os.path.dirname
         os_mock.path.exists.return_value = True
         os_mock.path.isfile.return_value = False
-        os_mock.path.join = os.path.join
         resources = Resources('foo', self.config)
         expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/3'
         assert resources.provider_image == expected_image_path
@@ -115,6 +118,7 @@ class ImageTest(unittest.TestCase):
         hashlib_mock.md5.return_value = md5
 
         os_mock.path.join = os.path.join
+        os_mock.path.dirname = os.path.dirname
         os_mock.path.exists.return_value = False
         os_mock.path.isfile.return_value = False
         os_mock.path.getmtime.return_value = 0
@@ -132,11 +136,14 @@ class ImageTest(unittest.TestCase):
     def test_image_unavailable_target_is_dir_no_cached(self, glance_mock, os_mock, _):
         glance_mock.images.list.return_value = [self.image3]
 
+        os_mock.path.join = os.path.join
+        os_mock.path.dirname = os.path.dirname
         os_mock.path.exists.side_effect = lambda x: {'/foo/bar/1': False,
+                                                     '/foo/bar/1.part': False,
                                                      '/foo/bar/3': False,
+                                                     '/foo/bar/3.part': False,
                                                      '/foo/bar': True}[x]
         os_mock.path.isfile.return_value = False
-        os_mock.path.join = os.path.join
 
         resources = Resources('foo', self.config)
         with self.assertRaises(FileNotFoundError):
