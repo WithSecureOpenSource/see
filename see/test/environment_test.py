@@ -118,6 +118,8 @@ class EnvironmentTest(unittest.TestCase):
     def test_decorated_handler(self):
         self.environment.context.trigger('decorated')
         self.assertTrue(self.environment._hookmanager.hooks[0].called1)
+        self.assertFalse(self.environment.context.signal_semaphore.available('decorated'))
+        time.sleep(2)  # Wait for semaphore timeout
         self.assertTrue(self.environment.context.signal_semaphore.available('decorated'))
         self.assertEqual(self.environment.context.signal_semaphore._hash['decorated'], 0)
 
