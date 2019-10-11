@@ -56,8 +56,6 @@ class Observable(Observatory):
         """
 
         SEMAPHORE_TIMEOUT = 2  # seconds
-        EventSemaphore = namedtuple('EventSemaphore', ('timeout',
-                                                       'counter'))
 
         def __init__(self):
             self._hash = {}
@@ -71,10 +69,11 @@ class Observable(Observatory):
             """
             with self._lock:
                 if event in self._hash:
-                    self._hash[event].counter += 1
+                    self._hash[event]['counter'] += 1
                 else:
-                    self._hash[event] = self.EventSemaphore(
-                        time.time() + self.SEMAPHORE_TIMEOUT, 1)
+                    self._hash[event] = {
+                        'timeout': time.time() + self.SEMAPHORE_TIMEOUT,
+                        'counter': 1}
 
         def release(self, event):
             """
@@ -83,8 +82,8 @@ class Observable(Observatory):
             @param event: (str|see.Event) event to track.
             """
             with self._lock:
-                if self._hash[event].counter > 0:
-                    self._hash[event].counter -= 1
+                if self._hash[event]['counter'] > 0:
+                    self._hash[event]['counter'] -= 1
                 else:
                     raise RuntimeError("Unexpected release call.")
 
@@ -96,8 +95,8 @@ class Observable(Observatory):
             """
             with self._lock:
                 result = True if event not in self._hash or (
-                    self._hash[event].counter == 0 and
-                    self._hash[event].timeout - time.time() < 0) else False
+                    self._hash[event]['counter'] == 0 and
+                    self._hash[event]['timeout'] - time.time() < 0) else False
             return result
 
     def __init__(self, identifier):
