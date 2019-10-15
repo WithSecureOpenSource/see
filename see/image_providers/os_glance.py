@@ -28,7 +28,9 @@ provider_parameters:
     session (dict):      A dictionary with OpenStack Session parameters. Allows
                          authentication to Keystone over TLS.
     libvirt_pool (dict): An optional dictionary with backing libvirt pool
-                         configuration.
+                         configuration, with the following keys:
+        hypervisor (str):   The URL of the hypervisor to connect to.
+        name (str):         The name of the libvirt storage pool.
 """
 
 import os
