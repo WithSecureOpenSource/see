@@ -27,8 +27,6 @@ provider_parameters:
                          as needed by OpenStack's Keystone client.
     session (dict):      A dictionary with OpenStack Session parameters. Allows
                          authentication to Keystone over TLS.
-    page_size (int):     The number of records to retrieve at once on glance
-                         listing operations. Default 1.
     libvirt_pool (dict): An optional dictionary with backing libvirt pool
                          configuration, with the following keys:
         hypervisor (str):   The URL of the hypervisor to connect to.
@@ -57,9 +55,6 @@ def verify_checksum(path, checksum):
                 break
             hash_md5.update(chunk)
     return hash_md5.hexdigest() == checksum
-
-
-PAGE_SIZE = 1
 
 
 class GlanceProvider(ImageProvider):
@@ -121,7 +116,6 @@ class GlanceProvider(ImageProvider):
 
     def _find_potentials(self):
         return sorted([image for image in self.glance_client.images.list(
-            page_size=self.configuration.get('page_size', PAGE_SIZE),
             filters={'name': self.name})
                        if image.status != 'active'],
                       key=lambda x: x.updated_at, reverse=True)
@@ -129,7 +123,6 @@ class GlanceProvider(ImageProvider):
     def _retrieve_metadata(self):
         try:
             return sorted([image for image in self.glance_client.images.list(
-                page_size=self.configuration.get('page_size', PAGE_SIZE),
                 filters={'name': self.name, 'status': 'active'})],
                           key=lambda x: x.updated_at, reverse=True)[0]
         except IndexError:
@@ -139,7 +132,6 @@ class GlanceProvider(ImageProvider):
         partfile = '{}.part'.format(target)
         if os.path.exists(partfile):
             for image in sorted([img for img in self.glance_client.images.list(
-                    page_size=self.configuration.get('page_size', PAGE_SIZE),
                     filters={'name': self.name, 'status': 'active'})],
                                 key=lambda x: x.updated_at, reverse=True):
                 newtarget = os.path.join(os.path.dirname(target), image.id)
