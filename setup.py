@@ -30,7 +30,7 @@ def read(fname):
 
 setup(
     name="python-see",
-    version="1.3.1",
+    version="1.3.2",
     author="F-Secure Corporation",
     author_email="matteo.cafasso@f-secure.com",
     description=("Sandboxed Execution Environment"),
