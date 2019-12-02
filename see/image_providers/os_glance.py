@@ -115,10 +115,11 @@ class GlanceProvider(ImageProvider):
         return self._glance_client
 
     def _find_potentials(self):
-        return sorted([image for image in self.glance_client.images.list(
-            filters={'name': self.name})
-                       if image.status != 'active'],
-                      key=lambda x: x.updated_at, reverse=True)
+        return sorted(
+            [image for image in self.glance_client.images.list(
+                filters={'name': self.name})
+             if image.status != 'active'],
+            key=lambda x: x.updated_at, reverse=True)
 
     def _retrieve_metadata(self):
         try:
@@ -129,15 +130,20 @@ class GlanceProvider(ImageProvider):
             raise FileNotFoundError(self.name)
 
     def _download_image(self, img_metadata, target):
-        partfile = '{}.part'.format(target)
-        if os.path.exists(partfile):
-            for image in sorted([img for img in self.glance_client.images.list(
-                    filters={'name': self.name, 'status': 'active'})],
-                                key=lambda x: x.updated_at, reverse=True):
+        def _older_image():
+            for image in sorted(
+                    [image for image in self.glance_client.images.list(
+                        filters={'name': self.name})
+                     if image.status in ('active', 'deactivated')],
+                    key=lambda x: x.updated_at, reverse=True):
                 newtarget = os.path.join(os.path.dirname(target), image.id)
                 if os.path.exists(newtarget):
                     return newtarget
-            raise FileNotFoundError()
+            raise FileNotFoundError('No viable images available')
+
+        partfile = '{}.part'.format(target)
+        if os.path.exists(partfile):
+            return _older_image()
         if not os.path.exists(target):
             img_downloader = self.glance_client.images.data(img_metadata.id)
             with open(partfile, 'wb') as imagefile:
