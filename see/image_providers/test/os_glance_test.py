@@ -101,7 +101,7 @@ class ImageTest(unittest.TestCase):
 
         os_mock.path.join = os.path.join
         os_mock.path.dirname = os.path.dirname
-        os_mock.path.exists.return_value = True
+        os_mock.path.exists.side_effect = [True, False, True]
         os_mock.path.isfile.return_value = False
         resources = Resources('foo', self.config)
         expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/3'
