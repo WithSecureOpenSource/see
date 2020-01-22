@@ -16,8 +16,7 @@ import hashlib
 
 
 def verify_checksum(path, checksum):
-    from hashlib import md5
-    hash_md5 = md5()
+    hash_md5 = hashlib.md5()
     with open(path, 'rb') as f:
         while True:
             chunk = f.read(4096)

@@ -107,10 +107,9 @@ class ImageTest(unittest.TestCase):
         expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/3'
         assert resources.provider_image == expected_image_path
 
-    @mock.patch('see.image_providers.os_glance.tempfile')
     @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
-    @mock.patch('see.image_providers.os_glance.hashlib')
-    def test_image_unavailable_target_does_not_exist(self, hashlib_mock, open_mock, temp_mock, glance_mock, os_mock, _):
+    @mock.patch('see.image_providers.helpers.hashlib')
+    def test_image_unavailable_target_does_not_exist(self, hashlib_mock, open_mock, glance_mock, os_mock, _):
         glance_mock.images.list.return_value = [self.image2]
 
         md5 = mock.MagicMock()
@@ -122,7 +121,6 @@ class ImageTest(unittest.TestCase):
         os_mock.path.exists.return_value = False
         os_mock.path.isfile.return_value = False
         os_mock.path.getmtime.return_value = 0
-        temp_mock.mkstemp.return_value = (0, 'tempfile')
 
         resources = Resources('foo', self.config)
         expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/2'
@@ -149,10 +147,9 @@ class ImageTest(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             _ = resources.provider_image
 
-    @mock.patch('see.image_providers.os_glance.tempfile')
     @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
-    @mock.patch('see.image_providers.os_glance.hashlib')
-    def test_stale_image_exists(self, hashlib_mock, open_mock, temp_mock, glance_mock, os_mock, _):
+    @mock.patch('see.image_providers.helpers.hashlib')
+    def test_stale_image_exists(self, hashlib_mock, open_mock, glance_mock, os_mock, _):
         glance_mock.images.list.return_value = [self.image1]
 
         md5 = mock.MagicMock()
@@ -163,7 +160,6 @@ class ImageTest(unittest.TestCase):
         os_mock.path.exists.side_effect = [True, False, False]
         os_mock.path.isfile.return_value = True
         os_mock.path.getmtime.return_value = 0
-        temp_mock.mkstemp.return_value = (0, 'tempfile')
 
         resources = Resources('foo', self.config)
         expected_image_path = self.config['disk']['image']['provider_configuration']['path']
@@ -175,10 +171,9 @@ class ImageTest(unittest.TestCase):
                          open_mock.call_args_list)
         os_mock.remove.assert_not_called()
 
-    @mock.patch('see.image_providers.os_glance.tempfile')
     @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
-    @mock.patch('see.image_providers.os_glance.hashlib')
-    def test_same_name_image_is_downloading_older_exists(self, hashlib_mock, open_mock, temp_mock, glance_mock, os_mock, _):
+    @mock.patch('see.image_providers.helpers.hashlib')
+    def test_same_name_image_is_downloading_older_exists(self, hashlib_mock, open_mock, glance_mock, os_mock, _):
         glance_mock.images.list.return_value = [self.image1, self.image2]
 
         md5 = mock.MagicMock()
@@ -189,7 +184,6 @@ class ImageTest(unittest.TestCase):
         os_mock.path.exists.side_effect = [True, True, False, True]
         os_mock.path.isfile.return_value = False
         os_mock.path.dirname.return_value = '/foo/bar'
-        temp_mock.mkstemp.return_value = (0, 'tempfile')
 
         resources = Resources('foo', self.config)
         expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/1'
@@ -199,10 +193,9 @@ class ImageTest(unittest.TestCase):
         open_mock.assert_not_called()
         os_mock.remove.assert_not_called()
 
-    @mock.patch('see.image_providers.os_glance.tempfile')
     @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
-    @mock.patch('see.image_providers.os_glance.hashlib')
-    def test_same_name_image_is_downloading_older_does_not_exist(self, hashlib_mock, open_mock, temp_mock, glance_mock, os_mock, _):
+    @mock.patch('see.image_providers.helpers.hashlib')
+    def test_same_name_image_is_downloading_older_does_not_exist(self, hashlib_mock, open_mock, glance_mock, os_mock, _):
         glance_mock.images.list.return_value = [self.image1, self.image2]
 
         md5 = mock.MagicMock()
@@ -213,7 +206,6 @@ class ImageTest(unittest.TestCase):
         os_mock.path.exists.side_effect = [True, True, False, False]
         os_mock.path.isfile.return_value = False
         os_mock.path.dirname.return_value = '/foo/bar'
-        temp_mock.mkstemp.return_value = (0, 'tempfile')
 
         resources = Resources('foo', self.config)
         expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/1'
@@ -224,10 +216,9 @@ class ImageTest(unittest.TestCase):
         open_mock.assert_not_called()
         os_mock.remove.assert_not_called()
 
-    @mock.patch('see.image_providers.os_glance.tempfile')
     @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
-    @mock.patch('see.image_providers.os_glance.hashlib')
-    def test_same_name_images_exist(self, hashlib_mock, open_mock, temp_mock, glance_mock, os_mock, _):
+    @mock.patch('see.image_providers.helpers.hashlib')
+    def test_same_name_images_exist(self, hashlib_mock, open_mock, glance_mock, os_mock, _):
         glance_mock.images.list.return_value = [self.image1, self.image2]
 
         md5 = mock.MagicMock()
@@ -237,7 +228,6 @@ class ImageTest(unittest.TestCase):
         os_mock.path.join = os.path.join
         os_mock.path.exists.side_effect = [True, False, False]
         os_mock.path.isfile.return_value = False
-        temp_mock.mkstemp.return_value = (0, 'tempfile')
 
         resources = Resources('foo', self.config)
         expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/2'
@@ -249,10 +239,9 @@ class ImageTest(unittest.TestCase):
                          open_mock.call_args_list)
         os_mock.remove.assert_not_called()
 
-    @mock.patch('see.image_providers.os_glance.tempfile')
     @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
-    @mock.patch('see.image_providers.os_glance.hashlib')
-    def test_checksum_mismatch(self, hashlib_mock, open_mock, temp_mock, glance_mock, os_mock, _):
+    @mock.patch('see.image_providers.helpers.hashlib')
+    def test_checksum_mismatch(self, hashlib_mock, open_mock, glance_mock, os_mock, _):
         glance_mock.images.list.return_value = [self.image1]
 
         md5 = mock.MagicMock()
@@ -262,7 +251,6 @@ class ImageTest(unittest.TestCase):
         os_mock.path.exists.side_effect = [True, False, False]
         os_mock.path.isfile.return_value = True
         os_mock.path.getmtime.return_value = 0
-        temp_mock.mkstemp.return_value = (0, 'tempfile')
 
         resources = Resources('foo', self.config)
         expected_image_path = self.config['disk']['image']['provider_configuration']['path']
