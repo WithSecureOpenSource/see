@@ -18,6 +18,7 @@ it doesn't already exist on the configured target path. Images can be requested
 by name or UUID; if name is requested the latest matching image is retrieved.
 
 provider_parameters:
+    name (str):          Name of the image to download.
     path (str):          Absolute path where to download the image.
                          If target_path is an existing file, it will be
                          overwritten if the image is newer. Otherwise
@@ -34,27 +35,15 @@ provider_parameters:
 """
 
 import os
-import hashlib
-import tempfile
 
 from datetime import datetime
 from see.interfaces import ImageProvider
+from see.image_providers.helpers import verify_checksum
 
 try:
     FileNotFoundError
 except NameError:
     FileNotFoundError = IOError
-
-
-def verify_checksum(path, checksum):
-    hash_md5 = hashlib.md5()
-    with open(path, 'rb') as f:
-        while True:
-            chunk = f.read(4096)
-            if not chunk:
-                break
-            hash_md5.update(chunk)
-    return hash_md5.hexdigest() == checksum
 
 
 class GlanceProvider(ImageProvider):
