@@ -12,7 +12,16 @@
 # implied.  See the License for the specific language governing
 # permissions and limitations under the License.
 
-from see.image_providers.dummy import DummyProvider
-from see.image_providers.libvirt_pool import LibvirtPoolProvider
-from see.image_providers.os_glance import GlanceProvider
-from see.image_providers.s3 import S3Provider
+import hashlib
+
+
+def verify_checksum(path, checksum):
+    from hashlib import md5
+    hash_md5 = md5()
+    with open(path, 'rb') as f:
+        while True:
+            chunk = f.read(4096)
+            if not chunk:
+                break
+            hash_md5.update(chunk)
+    return hash_md5.hexdigest() == checksum
