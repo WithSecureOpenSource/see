@@ -208,10 +208,9 @@ class ImageTest(unittest.TestCase):
         os_mock.path.dirname.return_value = '/foo/bar'
 
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/1'
 
         with self.assertRaises(FileNotFoundError):
-            assert resources.provider_image == expected_image_path
+            _ = resources.provider_image
         glance_mock.images.data.assert_not_called()
         open_mock.assert_not_called()
         os_mock.remove.assert_not_called()
@@ -253,11 +252,10 @@ class ImageTest(unittest.TestCase):
         os_mock.path.getmtime.return_value = 0
 
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['path']
 
         open_mock.reset_mock()
-        with self.assertRaisesRegexp(RuntimeError, 'Checksum failure. File: '):
-            assert resources.provider_image == expected_image_path
+        with self.assertRaisesRegex(RuntimeError, 'Checksum failure. File: '):
+            _ = resources.provider_image
 
         glance_mock.images.data.assert_called_with('1')
 
