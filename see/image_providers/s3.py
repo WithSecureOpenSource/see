@@ -52,20 +52,17 @@ class S3Provider(ImageProvider):
     def __init__(self, parameters):
         super(S3Provider, self).__init__(parameters)
         self._s3_client = None
-        try:
-            self.bucket_name = parameters['bucket_name']
-        except KeyError:
-            raise RuntimeError('"bucket_name" parameter is required')
 
     @property
     def image(self):
-        metadata = self.s3_client.ObjectSummary(self.bucket_name, self.name)
+        metadata = self.s3_client.ObjectSummary(
+            self.configuration['bucket_name'], self.name)
         try:
             if (os.path.exists(self.configuration['path']) and
                     os.path.isfile(os.path.realpath(
                         self.configuration['path'])) and
                     datetime.fromtimestamp(os.path.getmtime(
-                        self.configuration['path']))) > metadata.last_modified:
+                        self.configuration['path'])) > metadata.last_modified):
                 return self.configuration['path']
         except ClientError:
             if os.path.exists(self.configuration['path']) and os.path.isfile(
@@ -93,7 +90,7 @@ class S3Provider(ImageProvider):
         def _older_image():
             if (os.path.exists(target) and
                     datetime.fromtimestamp(os.path.getmtime(
-                        target))) < metadata.last_modified:
+                        target)) < metadata.last_modified):
                 return target
             raise FileNotFoundError('No viable images available')
 
@@ -102,8 +99,12 @@ class S3Provider(ImageProvider):
             return _older_image()
 
         if not os.path.exists(target):
-            self.s3_client.Object(self.bucket_name,
-                                  self.name).download_file(partfile)
+            try:
+                self.s3_client.Object(self.configuration['bucket_name'],
+                                      self.name).download_file(partfile)
+            except ClientError:
+                raise FileNotFoundError('No image found')
+
             if not verify_checksum(partfile, metadata.e_tag):
                 os.remove(partfile)
                 raise RuntimeError('Checksum failure. File: %s' % target)
