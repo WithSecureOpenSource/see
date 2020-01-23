@@ -12,6 +12,8 @@ try:
 except NameError:
     FileNotFoundError = IOError
 
+if sys.version_info.major < 3:
+    unittest.TestCase.assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
 
 @mock.patch('see.image_providers.s3.os')
 @mock.patch('see.image_providers.S3Provider.s3_client')
