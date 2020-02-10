@@ -15,6 +15,7 @@ except NameError:
 if sys.version_info.major < 3:
     unittest.TestCase.assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
 
+
 @mock.patch('see.image_providers.s3.os')
 @mock.patch('see.image_providers.S3Provider.s3_client')
 class ImageTest(unittest.TestCase):
@@ -66,7 +67,8 @@ class ImageTest(unittest.TestCase):
         assert resources.provider_image == expected_image_path
         s3_mock.Object.download_file.assert_not_called()
 
-    def test_image_does_not_exist(self, s3_mock, os_mock):
+    @mock.patch('see.image_providers.helpers.os')
+    def test_image_does_not_exist(self, _, s3_mock, os_mock):
         """The image is unavailable locally or remotely."""
         s3_mock.reset_mock()
         s3_mock.Object.download_file.side_effect = ClientError({}, 'MockOperation')
@@ -109,7 +111,8 @@ class ImageTest(unittest.TestCase):
 
     @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
     @mock.patch('see.image_providers.helpers.hashlib')
-    def test_image_unavailable_target_does_not_exist(self, hashlib_mock, _, s3_mock, os_mock):
+    @mock.patch('see.image_providers.helpers.os')
+    def test_image_unavailable_target_does_not_exist(self, _hom, hashlib_mock, _, s3_mock, os_mock):
         """The image is not available locally, download from remote."""
         s3_mock.reset_mock()
         s3_mock.ObjectSummary.return_value = self.image1
@@ -154,7 +157,8 @@ class ImageTest(unittest.TestCase):
 
     @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
     @mock.patch('see.image_providers.helpers.hashlib')
-    def test_stale_image_exists(self, hashlib_mock, _, s3_mock, os_mock):
+    @mock.patch('see.image_providers.helpers.os')
+    def test_stale_image_exists(self, _hom, hashlib_mock, _, s3_mock, os_mock):
         """A local image exists but it is older than the remote image."""
         s3_mock.reset_mock()
         s3_mock.ObjectSummary.return_value = self.image1
@@ -216,7 +220,8 @@ class ImageTest(unittest.TestCase):
 
     @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
     @mock.patch('see.image_providers.helpers.hashlib')
-    def test_checksum_mismatch(self, hashlib_mock, _, s3_mock, os_mock):
+    @mock.patch('see.image_providers.helpers.os')
+    def test_checksum_mismatch(self, _hom, hashlib_mock, _, s3_mock, os_mock):
         """The local image does not exist and the checksum of the downloaede image does not match."""
         s3_mock.reset_mock()
         s3_mock.ObjectSummary.return_value = self.image1
