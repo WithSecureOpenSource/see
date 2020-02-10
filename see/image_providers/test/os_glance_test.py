@@ -13,6 +13,7 @@ except NameError:
 if sys.version_info.major < 3:
     unittest.TestCase.assertRaisesRegex = unittest.TestCase.assertRaisesRegexp
 
+
 @mock.patch('see.image_providers.GlanceProvider.os_session')
 @mock.patch('see.image_providers.os_glance.os')
 @mock.patch('see.image_providers.GlanceProvider.glance_client')
@@ -111,7 +112,8 @@ class ImageTest(unittest.TestCase):
 
     @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
     @mock.patch('see.image_providers.helpers.hashlib')
-    def test_image_unavailable_target_does_not_exist(self, hashlib_mock, open_mock, glance_mock, os_mock, _):
+    @mock.patch('see.image_providers.helpers.os')
+    def test_image_unavailable_target_does_not_exist(self, _hom, hashlib_mock, open_mock, glance_mock, os_mock, _):
         glance_mock.images.list.return_value = [self.image2]
 
         md5 = mock.MagicMock()
@@ -151,7 +153,8 @@ class ImageTest(unittest.TestCase):
 
     @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
     @mock.patch('see.image_providers.helpers.hashlib')
-    def test_stale_image_exists(self, hashlib_mock, open_mock, glance_mock, os_mock, _):
+    @mock.patch('see.image_providers.helpers.os')
+    def test_stale_image_exists(self, _hom, hashlib_mock, open_mock, glance_mock, os_mock, _):
         glance_mock.images.list.return_value = [self.image1]
 
         md5 = mock.MagicMock()
@@ -219,7 +222,8 @@ class ImageTest(unittest.TestCase):
 
     @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
     @mock.patch('see.image_providers.helpers.hashlib')
-    def test_same_name_images_exist(self, hashlib_mock, open_mock, glance_mock, os_mock, _):
+    @mock.patch('see.image_providers.helpers.os')
+    def test_same_name_images_exist(self, _hom, hashlib_mock, open_mock, glance_mock, os_mock, _):
         glance_mock.images.list.return_value = [self.image1, self.image2]
 
         md5 = mock.MagicMock()
@@ -242,7 +246,8 @@ class ImageTest(unittest.TestCase):
 
     @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
     @mock.patch('see.image_providers.helpers.hashlib')
-    def test_checksum_mismatch(self, hashlib_mock, open_mock, glance_mock, os_mock, _):
+    @mock.patch('see.image_providers.helpers.os')
+    def test_checksum_mismatch(self, _hom, hashlib_mock, open_mock, glance_mock, os_mock, _):
         glance_mock.images.list.return_value = [self.image1]
 
         md5 = mock.MagicMock()
