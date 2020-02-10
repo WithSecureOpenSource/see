@@ -13,13 +13,15 @@
 # permissions and limitations under the License.
 
 import hashlib
+import os
 
 
 def verify_checksum(path, checksum):
     hash_md5 = hashlib.md5()
+    block_size = os.statvfs(path).f_bsize
     with open(path, 'rb') as f:
         while True:
-            chunk = f.read(4096)
+            chunk = f.read(block_size)
             if not chunk:
                 break
             hash_md5.update(chunk)
