@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
 # implied.  See the License for the specific language governing
 # permissions and limitations under the License.
+import os
+import time
 
 import xml.etree.ElementTree as etree
 
@@ -37,3 +39,10 @@ def subelement(element, xpath, tag, text, **kwargs):
         subelm.set(attr, value)
 
     return subelm
+
+
+def tag_disk(disk, path):
+    with open(os.path.join(path, '{}.{}'.format(
+            os.path.basename(disk), 'accessed')), 'w') as touch:
+        touch.write(time.time())
+        touch.truncate()
