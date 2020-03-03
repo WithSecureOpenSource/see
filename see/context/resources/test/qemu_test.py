@@ -1,3 +1,4 @@
+import sys
 import mock
 import libvirt
 import difflib
@@ -317,6 +318,11 @@ class DiskCloneTest(unittest.TestCase):
 
 @mock.patch('see.context.resources.qemu.network')
 class ResourcesTest(unittest.TestCase):
+    if sys.version_info.major >= 3:
+        builtin_module = 'builtins'
+    else:
+        builtin_module = '__builtin__'
+
     @mock.patch('see.context.resources.qemu.libvirt')
     @mock.patch('see.context.resources.qemu.domain_create')
     def test_allocate_default(self, create_mock, libvirt_mock, network_mock):
@@ -331,7 +337,8 @@ class ResourcesTest(unittest.TestCase):
 
     @mock.patch('see.context.resources.qemu.libvirt')
     @mock.patch('see.context.resources.qemu.domain_create')
-    def test_allocate_dummy_provider(self, create_mock, libvirt_mock, network_mock):
+    @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
+    def test_allocate_dummy_provider(self, _, create_mock, libvirt_mock, network_mock):
         """QEMU Resources allocator with no extra value and dummy image provider."""
         network_mock.lookup.return_value = None
         resources = qemu.QEMUResources('foo', {'domain': 'bar',

@@ -93,7 +93,7 @@ import xml.etree.ElementTree as etree
 
 from see.context.resources import network
 from see.context.resources import resources
-from see.context.resources.helpers import subelement
+from see.context.resources.helpers import subelement, tag_disk
 
 BASE_POOL_CONFIG = """
 <pool type='dir'>
@@ -372,6 +372,8 @@ class QEMUResources(resources.Resources):
             network_name = self._network.name()
 
         disk_path = self._retrieve_disk_path()
+        if isinstance(self.configuration['disk']['image'], dict):
+            tag_disk(disk_path, self.configuration['disk']['image']['provider_configuration']['path'])
 
         if self._storage_pool is not None:
             self._storage_pool.refresh()
