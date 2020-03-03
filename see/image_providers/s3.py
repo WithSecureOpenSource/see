@@ -68,12 +68,11 @@ class S3Provider(ImageProvider):
             if os.path.exists(self.configuration['path']) and os.path.isfile(
                     os.path.realpath(self.configuration['path'])):
                 return self.configuration['path']
-            else:
-                raise FileNotFoundError('No image found')
+            raise FileNotFoundError('No image found')
 
         target = (self.configuration['path']
                   if os.path.isfile(self.configuration['path'])
-                  else os.path.join(self.configuration['path'], self.name))
+                  else os.path.join(self.configuration['path'], metadata.e_tag))
 
         os.makedirs(os.path.dirname(os.path.realpath(target)), exist_ok=True)
 
@@ -88,10 +87,14 @@ class S3Provider(ImageProvider):
 
     def _download_image(self, metadata, target):
         def _older_image():
-            if (os.path.exists(target) and
-                    datetime.fromtimestamp(os.path.getmtime(
-                        target)) < metadata.last_modified):
-                return target
+            for version in sorted(
+                    self.s3_client.meta.client.list_object_versions(
+                        Bucket=self.configuration['bucket_name'],
+                        Prefix=self.name)['Versions'],
+                    key=lambda v: v['LastModified'], reverse=True):
+                oldimg = os.path.join(os.path.dirname(target), version['ETag'])
+                if os.path.exists(oldimg) and oldimg != target:
+                    return oldimg
             raise FileNotFoundError('No viable images available')
 
         partfile = '{}.part'.format(target)

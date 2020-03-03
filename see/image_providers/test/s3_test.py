@@ -106,7 +106,7 @@ class ImageTest(unittest.TestCase):
         os_mock.path.exists.side_effect = [True, False, True]
 
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/TestImageName'
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/1111'
         assert resources.provider_image == expected_image_path
 
     @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
@@ -129,7 +129,7 @@ class ImageTest(unittest.TestCase):
         os_mock.path.join = os.path.join
 
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/TestImageName'
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/1111'
         assert resources.provider_image == expected_image_path
         s3_mock.Object.assert_called_with(self.config['disk']['image']['provider_configuration']['bucket_name'],
                                           self.config['disk']['image']['name'])
@@ -145,10 +145,11 @@ class ImageTest(unittest.TestCase):
         downloader = mock.MagicMock()
         downloader.download_file.side_effect = ClientError({}, 'MockOperation')
         s3_mock.reset_mock()
+        s3_mock.ObjectSummary.return_value = self.image1
         s3_mock.Object.return_value = downloader
 
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/TestImageName'
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/1111'
         with self.assertRaises(FileNotFoundError):
             _ = resources.provider_image
         s3_mock.Object.assert_called_with(self.config['disk']['image']['provider_configuration']['bucket_name'],
@@ -187,14 +188,16 @@ class ImageTest(unittest.TestCase):
         os_mock.path.isfile.return_value = False
         os_mock.path.getmtime.return_value = 0
         os_mock.path.join = os.path.join
+        os_mock.path.dirname = os.path.dirname
 
         s3_mock.reset_mock()
         s3_mock.ObjectSummary.return_value = self.image1
+        s3_mock.meta.client.list_object_versions.return_value = {'Versions': [{'ETag': '0000', 'LastModified': datetime(2020, 1, 1)}]}
         downloader = mock.MagicMock()
         s3_mock.Object.return_value = downloader
 
         resources = Resources('foo', self.config)
-        expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/TestImageName'
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/0000'
 
         assert resources.provider_image == expected_image_path
         s3_mock.Object.assert_not_called()
@@ -208,6 +211,7 @@ class ImageTest(unittest.TestCase):
 
         s3_mock.reset_mock()
         s3_mock.ObjectSummary.return_value = self.image1
+        s3_mock.meta.client.list_object_versions.return_value = {'Versions': []}
         downloader = mock.MagicMock()
         s3_mock.Object.return_value = downloader
 
@@ -241,7 +245,7 @@ class ImageTest(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, 'Checksum failure. File: '):
             _ = resources.provider_image
 
-        expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/TestImageName'
+        expected_image_path = self.config['disk']['image']['provider_configuration']['path'] + '/1111'
         s3_mock.Object.assert_called_with(self.config['disk']['image']['provider_configuration']['bucket_name'],
                                           self.config['disk']['image']['name'])
         downloader.download_file.assert_called_with(expected_image_path + '.part')
