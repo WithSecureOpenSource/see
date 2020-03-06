@@ -131,8 +131,7 @@ class VBoxResources(resources.Resources):
     def allocate(self):
         """Initializes libvirt resources."""
         disk_path = self.provider_image
-        if isinstance(self.configuration['disk']['image'], dict):
-            tag_disk(disk_path, self.configuration['disk']['image']['provider_configuration']['path'])
+        tag_disk(disk_path)
 
         self._hypervisor = libvirt.open(
             self.configuration.get('hypervisor', 'vbox:///session'))

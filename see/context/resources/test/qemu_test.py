@@ -325,7 +325,8 @@ class ResourcesTest(unittest.TestCase):
 
     @mock.patch('see.context.resources.qemu.libvirt')
     @mock.patch('see.context.resources.qemu.domain_create')
-    def test_allocate_default(self, create_mock, libvirt_mock, network_mock):
+    @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
+    def test_allocate_default(self, _, create_mock, libvirt_mock, network_mock):
         """QEMU Resources allocator with no extra value and old style image definition."""
         network_mock.lookup.return_value = None
         resources = qemu.QEMUResources('foo', {'domain': 'bar',
@@ -352,7 +353,8 @@ class ResourcesTest(unittest.TestCase):
 
     @mock.patch('see.context.resources.qemu.libvirt')
     @mock.patch('see.context.resources.qemu.domain_create')
-    def test_allocate_hypervisor(self, create_mock, libvirt_mock, network_mock):
+    @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
+    def test_allocate_hypervisor(self, _, create_mock, libvirt_mock, network_mock):
         """QEMU Resources allocator with hypervisor."""
         network_mock.lookup.return_value = None
         resources = qemu.QEMUResources('foo', {'domain': 'bar',
@@ -367,7 +369,8 @@ class ResourcesTest(unittest.TestCase):
     @mock.patch('see.context.resources.qemu.domain_create')
     @mock.patch('see.context.resources.qemu.disk_clone')
     @mock.patch('see.context.resources.qemu.pool_create')
-    def test_allocate_clone(self, pool_mock, disk_mock, create_mock,
+    @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
+    def test_allocate_clone(self, _, pool_mock, disk_mock, create_mock,
                             libvirt_mock, network_mock):
         """QEMU Resources allocator with disk cloning."""
         pool = mock.MagicMock()
@@ -392,7 +395,8 @@ class ResourcesTest(unittest.TestCase):
 
     @mock.patch('see.context.resources.qemu.libvirt')
     @mock.patch('see.context.resources.qemu.domain_create')
-    def test_allocate_network(self, create_mock, libvirt_mock, network_mock):
+    @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
+    def test_allocate_network(self, _, create_mock, libvirt_mock, network_mock):
         """QEMU Resources allocator with network."""
         network = mock.Mock()
         network.name.return_value = 'baz'
@@ -410,7 +414,8 @@ class ResourcesTest(unittest.TestCase):
 
     @mock.patch('see.context.resources.qemu.libvirt')
     @mock.patch('see.context.resources.qemu.domain_create')
-    def test_allocate_fail(self, create_mock, libvirt_mock, network_mock):
+    @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
+    def test_allocate_fail(self, _, create_mock, libvirt_mock, network_mock):
         """QEMU network is destroyed on allocation fail."""
         network = mock.Mock()
         network.name.return_value = 'baz'
