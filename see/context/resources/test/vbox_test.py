@@ -1,3 +1,4 @@
+import sys
 import mock
 import libvirt
 import difflib
@@ -82,9 +83,15 @@ class DomainDeleteTest(unittest.TestCase):
 
 
 class ResourcesTest(unittest.TestCase):
+    if sys.version_info.major >= 3:
+        builtin_module = 'builtins'
+    else:
+        builtin_module = '__builtin__'
+
     @mock.patch('see.context.resources.vbox.libvirt')
     @mock.patch('see.context.resources.vbox.domain_create')
-    def test_allocate_default(self, create_mock, libvirt_mock):
+    @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
+    def test_allocate_default(self, _, create_mock, libvirt_mock):
         """VBOX Resources allocater with no extra value."""
         resources = vbox.VBoxResources('foo',
                                        {'domain': 'bar',
@@ -96,7 +103,8 @@ class ResourcesTest(unittest.TestCase):
 
     @mock.patch('see.context.resources.vbox.libvirt')
     @mock.patch('see.context.resources.vbox.domain_create')
-    def test_allocate_hypervisor(self, create_mock, libvirt_mock):
+    @mock.patch('%s.open' % builtin_module, new_callable=mock.mock_open)
+    def test_allocate_hypervisor(self, _, create_mock, libvirt_mock):
         """VBOX Resources allocater with hypervisor."""
         resources = vbox.VBoxResources('foo', {'domain': 'bar',
                                                'hypervisor': 'baz',
