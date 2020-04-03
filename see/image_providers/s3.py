@@ -72,7 +72,8 @@ class S3Provider(ImageProvider):
 
         target = (self.configuration['path']
                   if os.path.isfile(self.configuration['path'])
-                  else os.path.join(self.configuration['path'], metadata.e_tag))
+                  else os.path.join(self.configuration['path'],
+                                    metadata.e_tag.strip('"')))
 
         os.makedirs(os.path.dirname(os.path.realpath(target)), exist_ok=True)
 
@@ -92,7 +93,8 @@ class S3Provider(ImageProvider):
                         Bucket=self.configuration['bucket_name'],
                         Prefix=self.name)['Versions'],
                     key=lambda v: v['LastModified'], reverse=True):
-                oldimg = os.path.join(os.path.dirname(target), version['ETag'])
+                oldimg = os.path.join(os.path.dirname(target),
+                                      version['ETag'].strip('"'))
                 if os.path.exists(oldimg) and oldimg != target:
                     return oldimg
             raise FileNotFoundError('No viable images available')
@@ -108,7 +110,7 @@ class S3Provider(ImageProvider):
             except ClientError:
                 raise FileNotFoundError('No image found')
 
-            if not verify_etag(partfile, metadata.e_tag):
+            if not verify_etag(partfile, metadata.e_tag.strip('"')):
                 os.remove(partfile)
                 raise RuntimeError('Checksum failure. File: %s' % target)
             os.rename(partfile, target)
