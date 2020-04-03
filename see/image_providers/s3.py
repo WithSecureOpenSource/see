@@ -39,7 +39,7 @@ import boto3
 from datetime import datetime
 from botocore.exceptions import ClientError
 from see.interfaces import ImageProvider
-from see.image_providers.helpers import verify_checksum
+from see.image_providers.helpers import verify_etag
 
 try:
     FileNotFoundError
@@ -108,7 +108,7 @@ class S3Provider(ImageProvider):
             except ClientError:
                 raise FileNotFoundError('No image found')
 
-            if not verify_checksum(partfile, metadata.e_tag):
+            if not verify_etag(partfile, metadata.e_tag):
                 os.remove(partfile)
                 raise RuntimeError('Checksum failure. File: %s' % target)
             os.rename(partfile, target)

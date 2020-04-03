@@ -14,6 +14,7 @@
 
 import hashlib
 import os
+import io
 
 
 def verify_checksum(path, checksum):
@@ -26,3 +27,19 @@ def verify_checksum(path, checksum):
                 break
             hash_md5.update(chunk)
     return hash_md5.hexdigest() == checksum
+
+
+def verify_etag(path, etag):
+    chunk_size = 8 * 1024 * 1024  # This is AWS chunk size
+    chunk_count = 0
+    stream = io.BytesIO()
+    with open(path, 'rb') as f:
+        while True:
+            data = f.read(chunk_size)
+            if not data:
+                break
+            stream.write(hashlib.md5(data).digest())
+            chunk_count += 1
+    stream.seek(0)
+    return '{}-{}'.format(hashlib.md5(stream.read()).hexdigest(),
+                          chunk_count) == etag
