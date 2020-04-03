@@ -41,5 +41,7 @@ def verify_etag(path, etag):
             stream.write(hashlib.md5(data).digest())
             chunk_count += 1
     stream.seek(0)
-    return '{}-{}'.format(hashlib.md5(stream.read()).hexdigest(),
-                          chunk_count) == etag
+    if chunk_count > 1:
+        return '{}-{}'.format(hashlib.md5(stream.read()).hexdigest(),
+                              chunk_count) == etag
+    return hashlib.md5(stream.read()).hexdigest() == etag
