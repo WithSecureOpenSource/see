@@ -372,7 +372,7 @@ class QEMUResources(resources.Resources):
             network_name = self._network.name()
 
         disk_path = self._retrieve_disk_path()
-        tag_disk(disk_path)
+        tag_disk(self.provider_image)
 
         if self._storage_pool is not None:
             self._storage_pool.refresh()
