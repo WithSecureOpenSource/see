@@ -36,16 +36,16 @@ class CommandsHook(Hook):
 
     Reacts to Events sending commands to the Guest Agent.
 
-    * Event("run_command", async=False, command="ls -al")
+    * Event("run_command", asyn=False, command="ls -al")
         Executes a simple command within the Guest OS via the Agent.
         Blocks until the results are not delivered and logs them.
 
-    * Event("run_sample", async=True, sample="/local/path/file.exe",
+    * Event("run_sample", asyn=True, sample="/local/path/file.exe",
             command="start {sample}")
         Uploads a sample and executes a command. The keyword {sample}
         within the command will be expanded with the path of the uploaded
         file on the Guest. The action does not wait for the results
-        as the async flag is set.
+        as the asyn flag is set.
 
     configuration::
 
@@ -82,29 +82,29 @@ class CommandsHook(Hook):
         self.logger.debug("Event %s: running command <%s>.",
                           event, event.command)
 
-        async = hasattr(event, 'async') and event.async or False
-        response = self.command_request(event.command, async)
+        asyn = hasattr(event, 'asyn') and event.asyn or False
+        response = self.command_request(event.command, asyn)
 
-        self.log_command_response(event.command, response, async)
+        self.log_command_response(event.command, response, asyn)
 
     def run_sample_handler(self, event):
         self.logger.debug("Event %s: running command <%s>.",
                           event, event.command)
 
-        async = hasattr(event, 'async') and event.async or False
-        response = self.sample_request(event.command, event.sample, async)
+        asyn = hasattr(event, 'asyn') and event.asyn or False
+        response = self.sample_request(event.command, event.sample, asyn)
 
-        self.log_command_response(event.command, response, async)
+        self.log_command_response(event.command, response, asyn)
 
-    def command_request(self, command, async):
+    def command_request(self, command, asyn):
         url = 'http://%s:%d' % (self.host, self.port)
         response = requests.get(url, params={'command': command,
-                                             'async': int(async)})
+                                             'asyn': int(asyn)})
         response.raise_for_status()
 
         return response
 
-    def sample_request(self, command, sample, async):
+    def sample_request(self, command, sample, asyn):
         url = 'http://%s:%d' % (self.host, self.port)
 
         with open(sample, 'rb') as sample_file:
@@ -113,13 +113,13 @@ class CommandsHook(Hook):
         response = requests.post(url, data=data,
                                  params={'command': command,
                                          'sample': os.path.basename(sample),
-                                         'async': int(async)})
+                                         'asyn': int(asyn)})
         response.raise_for_status()
 
         return response
 
-    def log_command_response(self, command, response, async):
-        if not async:
+    def log_command_response(self, command, response, asyn):
+        if not asyn:
             results = response.json()
 
             self.logger.info("Command <%s> output:\n%s",
