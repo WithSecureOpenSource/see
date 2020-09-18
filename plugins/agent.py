@@ -62,8 +62,8 @@ class Agent(BaseHTTPRequestHandler):
 
         query = parse_qs(urlparse(self.path).query)
         command = query['command'][0].split(' ')
-        async = bool(int(query.get('async', [False])[0]))
-        output = run_command(command, asynchronous=async)
+        asyn = bool(int(query.get('asyn', [False])[0]))
+        output = run_command(command, asynchronous=asyn)
 
         self.respond(output)
 
@@ -73,12 +73,12 @@ class Agent(BaseHTTPRequestHandler):
 
         query = parse_qs(urlparse(self.path).query)
         sample = query['sample'][0]
-        async = bool(int(query.get('async', [False])[0]))
+        asyn = bool(int(query.get('asyn', [False])[0]))
 
         path = self.store_file(mkdtemp(), sample)
         command = query['command'][0].format(sample=path).split(' ')
 
-        output = run_command(command, asynchronous=async)
+        output = run_command(command, asynchronous=asyn)
 
         self.respond(output)
 
