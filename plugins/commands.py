@@ -82,7 +82,7 @@ class CommandsHook(Hook):
         self.logger.debug("Event %s: running command <%s>.",
                           event, event.command)
 
-        async_flag = hasattr(event, 'async') and event.async_flag or False
+        async_flag = hasattr(event, 'async_flag') and event.async_flag or False
         response = self.command_request(event.command, async_flag)
 
         self.log_command_response(event.command, response, async_flag)
@@ -91,7 +91,7 @@ class CommandsHook(Hook):
         self.logger.debug("Event %s: running command <%s>.",
                           event, event.command)
 
-        async_flag = hasattr(event, 'async') and event.async_flag or False
+        async_flag = hasattr(event, 'async_flag') and event.async_flag or False
         response = self.sample_request(event.command, event.sample, async_flag)
 
         self.log_command_response(event.command, response, async_flag)
